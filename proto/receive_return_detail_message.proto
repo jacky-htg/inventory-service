@@ -3,13 +3,12 @@ package wiradata.inventories;
 
 option go_package = "pb/inventories;inventories";
 
-import "receive_return_message.proto";
 import "product_message.proto";
 import "shelve_message.proto";
 
 message ReceiveReturnDetail {
   string id = 1;
-  ReceiveReturn receive_return = 2;
+  string receive_return_id = 2;
   Product product = 3;
   Shelve shelve = 4;
   string code = 5;

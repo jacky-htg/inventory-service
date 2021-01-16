@@ -5,7 +5,7 @@ option go_package = "pb/inventories;inventories";
 
 import "google/protobuf/timestamp.proto";
 
-message Branch {
+message Brand {
   string id = 1;
   string company_id = 2;
   string code = 3;

@@ -4,13 +4,12 @@ package wiradata.inventories;
 option go_package = "pb/inventories;inventories";
 
 import "google/protobuf/timestamp.proto";
-import "receive_message.proto";
 import "product_message.proto";
 import "shelve_message.proto";
 
 message ReceiveDetail {
   string id = 1;
-  Receive receive = 2;
+  string receive_id = 2;
   Product product = 3;
   Shelve shelve = 4;
   string code = 5;

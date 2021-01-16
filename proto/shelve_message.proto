@@ -4,8 +4,8 @@ package wiradata.inventories;
 option go_package = "pb/inventories;inventories";
 
 import "google/protobuf/timestamp.proto";
-import "warehouse_message.proto"";
-"
+import "warehouse_message.proto";
+
 message Shelve {
   string id = 1;
   Warehouse warehouse = 2;
