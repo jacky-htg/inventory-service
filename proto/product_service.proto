@@ -1,7 +1,7 @@
 syntax = "proto3";
-package wiradata.warehouses;
+package wiradata.inventories;
 
-option go_package = "pb/warehouses;warehouses";
+option go_package = "pb/inventories;inventories";
 
 import "product_message.proto";
 import "generic_message.proto";
