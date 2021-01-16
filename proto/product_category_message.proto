@@ -1,0 +1,18 @@
+syntax = "proto3";
+package wiradata.warehouses;
+
+option go_package = "pb;warehouses";
+
+import "google/protobuf/timestamp.proto";
+import "category_message.proto";
+
+message ProductCategory {
+  string id = 1;
+  string company_id = 2;
+  Category category = 3;
+  string name = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string created_by = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  string updated_by = 8;
+}

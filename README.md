@@ -19,6 +19,10 @@ Warehouse service using golang grpc and postgresql.
 - [ ] Brands
 - [ ] Warehouses
 - [ ] Shelves
+- [ ] Good Receivings
+- [ ] Receiving Returns
+- [ ] Delivery Orders
+- [ ] Delivery Returns
 - [ ] Internal Warehouse Mutations
 - [ ] External Warehouse Mutations
 - [ ] Stock Opname
