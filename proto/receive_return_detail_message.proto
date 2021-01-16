@@ -1,0 +1,17 @@
+syntax = "proto3";
+package wiradata.warehouses;
+
+option go_package = "pb;warehouses";
+
+import "receive_return_message.proto";
+import "product_message.proto";
+import "shelve_message.proto";
+
+message ReceiveReturnDetail {
+  string id = 1;
+  ReceiveReturn receive_return = 2;
+  Product product = 3;
+  Shelve shelve = 4;
+  string code = 5;
+  uint32 qty = 6;
+}
