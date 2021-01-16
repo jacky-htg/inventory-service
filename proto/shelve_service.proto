@@ -1,0 +1,31 @@
+syntax = "proto3";
+package wiradata.warehouses;
+
+option go_package = "pb/warehouses;warehouses";
+
+import "shelve_message.proto";
+import "generic_message.proto";
+
+message ListShelveRequest {
+  Pagination pagination = 1;
+  string warehouse_id = 2;
+}
+
+message ShelvePaginationResponse {
+  Pagination pagination = 1;
+  string warehouse_id = 3;
+  uint32 count = 4;
+}
+
+message ListShelveResponse {
+  ShelvePaginationResponse pagination = 1;
+  Shelve shelve = 2; 
+}
+
+service ShelveService {
+  rpc Create(Shelve) returns (Shelve) {}
+  rpc Update(Shelve) returns (Shelve) {}
+  rpc View(Id) returns (Shelve) {}
+  rpc Delete(Id) returns (Boolean) {}
+  rpc List(ListShelveRequest) returns (stream ListShelveResponse) {}
+}

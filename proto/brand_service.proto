@@ -1,0 +1,20 @@
+syntax = "proto3";
+package wiradata.warehouses;
+
+option go_package = "pb/warehouses;warehouses";
+
+import "brand_message.proto";
+import "generic_message.proto";
+
+message ListBrandResponse {
+  PaginationResponse pagination = 1;
+  Brand brand = 2; 
+}
+
+service BrandService {
+  rpc Create(Brand) returns (Brand) {}
+  rpc Update(Brand) returns (Brand) {}
+  rpc View(Id) returns (Brand) {}
+  rpc Delete(Id) returns (Boolean) {}
+  rpc List(Pagination) returns (stream ListBrandResponse) {}
+}

@@ -1,0 +1,11 @@
+syntax = "proto3";
+package wiradata.warehouses;
+
+option go_package = "pb/warehouses;warehouses";
+
+import "category_message.proto";
+import "generic_message.proto";
+
+service CategoryService {
+  rpc List(Empty) returns (stream Category) {}
+}

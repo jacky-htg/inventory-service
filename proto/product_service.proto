@@ -1,0 +1,33 @@
+syntax = "proto3";
+package wiradata.warehouses;
+
+option go_package = "pb/warehouses;warehouses";
+
+import "product_message.proto";
+import "generic_message.proto";
+
+message ListProductRequest {
+  Pagination pagination = 1;
+  string product_category_id = 2;
+  string brand_id = 3;
+}
+
+message ProductPaginationResponse {
+  Pagination pagination = 1;
+  string product_category_id = 2;
+  string brand_id = 3;
+  uint32 count = 4;
+}
+
+message ListProductResponse {
+  ProductPaginationResponse pagination = 1;
+  Product product = 2; 
+}
+
+service ProductService {
+  rpc Create(Product) returns (Product) {}
+  rpc Update(Product) returns (Product) {}
+  rpc View(Id) returns (Product) {}
+  rpc Delete(Id) returns (Boolean) {}
+  rpc List(ListProductRequest) returns (stream ListProductResponse) {}
+}
