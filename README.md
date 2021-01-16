@@ -17,7 +17,6 @@ Warehouse service using golang grpc and postgresql.
 - [ ] Products
 - [ ] Product Categories
 - [ ] Brands
-- [ ] Employees
 - [ ] Warehouses
 - [ ] Shelves
 - [ ] Internal Warehouse Mutations
@@ -27,7 +26,7 @@ Warehouse service using golang grpc and postgresql.
 - [ ] Product Track History
 - [ ] Closing Stocks
 
-## How To Contrubute
+## How To Contribute
 - Give star or clone and fork the repository
 - Report the bug
 - Submit issue for request of enhancement
