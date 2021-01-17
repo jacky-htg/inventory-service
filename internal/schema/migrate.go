@@ -50,15 +50,15 @@ var migrations = []darwin.Migration{
 		Script: `
 		CREATE TABLE products (
 			id char(36) NOT NULL PRIMARY KEY,
-			company_id	char(36) NOT NULL,
+			company_id char(36) NOT NULL,
 			brand_id char(36) NOT NULL,
 			product_category_id char(36) NOT NULL,
-			code	CHAR(10) NOT NULL,
-			name	VARCHAR(255) NOT NULL,
-			minimum_stock MEDIUMINT(8) UNSIGNED NOT NULL,
+			code CHAR(10) NOT NULL,
+			name VARCHAR(255) NOT NULL,
+			minimum_stock INTEGER NOT NULL,
 			created TIMESTAMP NOT NULL DEFAULT NOW(),
 			updated TIMESTAMP NOT NULL DEFAULT NOW(),
-			UNIQUE KEY (company_id, code),
+			UNIQUE(company_id, code),
 			CONSTRAINT fk_products_to_brands FOREIGN KEY (brand_id) REFERENCES brands(id),
 			CONSTRAINT fk_products_to_product_categories FOREIGN KEY (product_category_id) REFERENCES product_categories(id)
 		);`,
@@ -78,8 +78,7 @@ var migrations = []darwin.Migration{
 			pic_phone VARCHAR(20) NOT NULL,
 			created TIMESTAMP NOT NULL DEFAULT NOW(),
 			updated TIMESTAMP NOT NULL DEFAULT NOW(),
-			UNIQUE KEY (company_id, code),
-			CONSTRAINT fk_products_to_branch FOREIGN KEY (branch_id) REFERENCES branches(id)
+			UNIQUE(company_id, code)
 		);`,
 	},
 	{
@@ -90,10 +89,10 @@ var migrations = []darwin.Migration{
 			id char(36) NOT NULL PRIMARY KEY,
 			warehouse_id	char(36) NOT NULL,
 			code CHAR(10) NOT NULL,
-			capacity MEDIUMINT(8) UNSIGNED NOT NULL,
+			capacity INTEGER NOT NULL,
 			created TIMESTAMP NOT NULL DEFAULT NOW(),
 			updated TIMESTAMP NOT NULL DEFAULT NOW(),
-			UNIQUE KEY shelves_code (warehouse_id, code),
+			UNIQUE(warehouse_id, code),
 			CONSTRAINT fk_shelves_to_warehouses FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
 		);`,
 	},
