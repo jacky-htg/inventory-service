@@ -17,4 +17,7 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry) {
 	productCategoryServer := service.ProductCategory{Db: db}
 	inventories.RegisterProductCategoryServiceServer(grpcServer, &productCategoryServer)
 
+	brandServer := service.Brand{Db: db}
+	inventories.RegisterBrandServiceServer(grpcServer, &brandServer)
+
 }

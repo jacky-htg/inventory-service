@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"inventory-service/internal/pkg/app"
-	"inventory-service/pb/inventories"
 	"strings"
 	"time"
+
+	"inventory-service/internal/pkg/app"
+	"inventory-service/pb/inventories"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
@@ -147,13 +148,13 @@ func (u *ProductCategory) Update(ctx context.Context, db *sql.DB) error {
 
 // Delete ProductCategory
 func (u *ProductCategory) Delete(ctx context.Context, db *sql.DB) error {
-	stmt, err := db.PrepareContext(ctx, `DELETE FROM product_categories WHERE id = $1`)
+	stmt, err := db.PrepareContext(ctx, `DELETE FROM product_categories WHERE company_id = $1 AND id = $2`)
 	if err != nil {
 		return status.Errorf(codes.Internal, "Prepare delete product category: %v", err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.ExecContext(ctx, u.Pb.GetId())
+	_, err = stmt.ExecContext(ctx, ctx.Value(app.Ctx("companyID")).(string), u.Pb.GetId())
 	if err != nil {
 		return status.Errorf(codes.Internal, "Exec delete product category: %v", err)
 	}

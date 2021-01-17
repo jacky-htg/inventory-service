@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql"
+
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
