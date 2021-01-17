@@ -13,8 +13,8 @@ type Category struct {
 	Db *sql.DB
 }
 
-// List Group
-func (u *Group) List(in *inventories.Empty, stream inventories.CategoryService_ListServer) error {
+// List Category
+func (u *Category) List(in *inventories.Empty, stream inventories.CategoryService_ListServer) error {
 	ctx := stream.Context()
 	rows, err := u.Db.QueryContext(ctx, `SELECT id, name FROM categories`)
 	if err != nil {
