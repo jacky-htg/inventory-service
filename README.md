@@ -14,8 +14,9 @@ Inventory service using golang grpc and postgresql.
 - You can test the service using `go run client/main.go` and select the test case on file client/main.go
 
 ## Features
-- [ ] Products
+- [X] Products
 - [X] Product Categories
+- [ ] Product Barcode
 - [X] Brands
 - [ ] Warehouses
 - [ ] Shelves

@@ -4,11 +4,10 @@ package wiradata.inventories;
 option go_package = "pb/inventories;inventories";
 
 message Empty {}
-
 message Id { string id = 1; } 
 message String { string string = 1; } 
-
 message Message { string message = 1; }
+message Boolean { bool boolean = 1; }
 
 message Pagination {
   enum Sort {
@@ -27,5 +26,3 @@ message PaginationResponse {
   Pagination pagination = 1;
   uint32 count = 2;
 }
-
-message Boolean { bool boolean = 1; }
