@@ -106,6 +106,66 @@ var migrations = []darwin.Migration{
 			CONSTRAINT fk_shelves_to_warehouses FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
 		);`,
 	},
+	{
+		Version:     7,
+		Description: "Add Inventories",
+		Script: `
+		CREATE TABLE inventories (
+			id char(36) NOT NULL PRIMARY KEY,
+			company_id	char(36) NOT NULL,
+			branch_id char(36) NOT NULL,
+			product_id char(36) NOT NULL,
+			barcode CHAR(20) NOT NULL,
+			transaction_id char(36) NOT NULL,
+			transaction_code CHAR(13) NOT NULL,
+			transaction_date DATE NOT NULL,
+			type CHAR(2) NOT NULL,
+			in_out BOOLEAN NOT NULL,
+			qty INTEGER NOT NULL, 
+			shelve_id char(36) NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			CONSTRAINT fk_inventories_to_products FOREIGN KEY (product_id) REFERENCES products(id)
+		);`,
+	},
+	{
+		Version:     8,
+		Description: "Add Receiving",
+		Script: `
+		CREATE TABLE receivings (
+			id char(36) NOT NULL PRIMARY KEY,
+			company_id	char(36) NOT NULL,
+			branch_id char(36) NOT NULL,
+			purchase_id char(36) NOT NULL,
+			code	CHAR(13) NOT NULL,
+			date	DATE NOT NULL,
+			remark VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			created_by BIGINT(20) UNSIGNED NOT NULL,
+			updated_by BIGINT(20) UNSIGNED NOT NULL,
+			UNIQUE(company_id, code)
+		);`,
+	},
+	{
+		Version:     9,
+		Description: "Add Receiving Details",
+		Script: `
+		CREATE TABLE receiving_details (
+			id char(36) NOT NULL PRIMARY KEY,
+			receiving_id	char(36) NOT NULL,
+			product_id char(36) NOT NULL,
+			qty INTEGER NOT NULL,
+			barcode CHAR(20) NOT NULL,
+			shelve_id char(36) NOT NULL,
+			expired_date TIMESTAMP,
+			UNIQUE(barcode, receiving_id),
+			UNIQUE(product_id, receiving_id),
+			CONSTRAINT fk_receiving_details_to_receivings FOREIGN KEY (receiving_id) REFERENCES receivings(id) ON DELETE CASCADE ON UPDATE CASCADE,
+			CONSTRAINT fk_receiving_details_to_products FOREIGN KEY (product_id) REFERENCES products(id),
+			CONSTRAINT fk_receiving_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
+		);`,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
