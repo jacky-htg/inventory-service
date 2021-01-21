@@ -112,7 +112,7 @@ var migrations = []darwin.Migration{
 		Script: `
 		CREATE TABLE inventories (
 			id char(36) NOT NULL PRIMARY KEY,
-			company_id	char(36) NOT NULL,
+			company_id char(36) NOT NULL,
 			branch_id char(36) NOT NULL,
 			product_id char(36) NOT NULL,
 			barcode CHAR(20) NOT NULL,
@@ -142,8 +142,8 @@ var migrations = []darwin.Migration{
 			remark VARCHAR(255) NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 			updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-			created_by BIGINT(20) UNSIGNED NOT NULL,
-			updated_by BIGINT(20) UNSIGNED NOT NULL,
+			created_by char(36) NOT NULL,
+			updated_by char(36) NOT NULL,
 			UNIQUE(company_id, code)
 		);`,
 	},
