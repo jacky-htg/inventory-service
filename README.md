@@ -20,7 +20,7 @@ Inventory service using golang grpc and postgresql.
 - [X] Brands
 - [X] Warehouses
 - [X] Shelves
-- [ ] Good Receivings
+- [X] Good Receivings
 - [ ] Receiving Returns
 - [ ] Delivery Orders
 - [ ] Delivery Returns

@@ -13,8 +13,8 @@ message ListShelveRequest {
 
 message ShelvePaginationResponse {
   Pagination pagination = 1;
-  string warehouse_id = 3;
-  uint32 count = 4;
+  string warehouse_id = 2;
+  uint32 count = 3;
 }
 
 message ListShelveResponse {
