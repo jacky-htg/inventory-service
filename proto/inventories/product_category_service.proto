@@ -3,8 +3,8 @@ package wiradata.inventories;
 
 option go_package = "pb/inventories;inventories";
 
-import "product_category_message.proto";
-import "generic_message.proto";
+import "inventories/product_category_message.proto";
+import "inventories/generic_message.proto";
 
 message ListProductCategoryRequest {
   Pagination pagination = 1;

@@ -18,7 +18,7 @@ Inventory service using golang grpc and postgresql.
 - [X] Product Categories
 - [ ] Product Barcode
 - [X] Brands
-- [ ] Warehouses
+- [X] Warehouses
 - [ ] Shelves
 - [ ] Good Receivings
 - [ ] Receiving Returns

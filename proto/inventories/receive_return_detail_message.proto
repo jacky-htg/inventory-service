@@ -3,8 +3,8 @@ package wiradata.inventories;
 
 option go_package = "pb/inventories;inventories";
 
-import "product_message.proto";
-import "shelve_message.proto";
+import "inventories/product_message.proto";
+import "inventories/shelve_message.proto";
 
 message ReceiveReturnDetail {
   string id = 1;

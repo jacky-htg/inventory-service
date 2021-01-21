@@ -3,8 +3,8 @@ package wiradata.inventories;
 
 option go_package = "pb/inventories;inventories";
 
-import "category_message.proto";
-import "generic_message.proto";
+import "inventories/category_message.proto";
+import "inventories/generic_message.proto";
 
 service CategoryService {
   rpc List(Empty) returns (stream Category) {}

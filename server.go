@@ -47,8 +47,14 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
+	userConn, err := grpc.Dial(os.Getenv("USER_SERVICE"), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("create user service connection: %v", err)
+	}
+	defer userConn.Close()
+
 	// routing grpc services
-	route.GrpcRoute(grpcServer, db, log)
+	route.GrpcRoute(grpcServer, db, log, userConn)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %s", err)

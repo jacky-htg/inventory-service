@@ -4,8 +4,8 @@ package wiradata.inventories;
 option go_package = "pb/inventories;inventories";
 
 import "google/protobuf/timestamp.proto";
-import "brand_message.proto";
-import "product_category_message.proto";
+import "inventories/brand_message.proto";
+import "inventories/product_category_message.proto";
 
 message Product {
   string id = 1;
