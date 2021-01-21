@@ -10,7 +10,7 @@ message Shelve {
   string id = 1;
   Warehouse warehouse = 2;
   string code = 3;
-  string name = 4;
+  string capacity = 4;
   google.protobuf.Timestamp created_at = 5;
   string created_by = 6;
   google.protobuf.Timestamp updated_at = 7;

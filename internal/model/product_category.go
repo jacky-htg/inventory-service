@@ -42,11 +42,11 @@ func (u *ProductCategory) Get(ctx context.Context, db *sql.DB) error {
 	)
 
 	if err == sql.ErrNoRows {
-		return status.Errorf(codes.NotFound, "Query Raw get category: %v", err)
+		return status.Errorf(codes.NotFound, "Query Raw get product category: %v", err)
 	}
 
 	if err != nil {
-		return status.Errorf(codes.Internal, "Query Raw get category: %v", err)
+		return status.Errorf(codes.Internal, "Query Raw get product category: %v", err)
 	}
 
 	if companyID != ctx.Value(app.Ctx("companyID")).(string) {
