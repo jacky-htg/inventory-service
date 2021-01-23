@@ -12,7 +12,5 @@ message ReceiveDetail {
   string receive_id = 2;
   Product product = 3;
   Shelve shelve = 4;
-  string code = 5;
-  uint32 qty = 6;
-  google.protobuf.Timestamp expired_date = 7;
+  google.protobuf.Timestamp expired_date = 5;
 }

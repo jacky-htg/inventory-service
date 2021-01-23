@@ -8,17 +8,15 @@ import "inventories/receive_detail_message.proto";
 
 message Receive {
   string id = 1;
-  string company_id = 2;
   string branch_id = 3;
   string branch_name = 4;
   string purchase_id = 5;
-  string purchase_code = 6;
-  string code = 7;
-  google.protobuf.Timestamp date = 8;
-  string remark = 9;
-  google.protobuf.Timestamp created_at = 10;
-  string created_by = 11;
-  google.protobuf.Timestamp updated_at = 12;
-  string updated_by = 13;
-  repeated ReceiveDetail details = 14;
+  string code = 6;
+  google.protobuf.Timestamp date = 7;
+  string remark = 8;
+  google.protobuf.Timestamp created_at = 9;
+  string created_by = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string updated_by = 12;
+  repeated ReceiveDetail details = 13;
 }
