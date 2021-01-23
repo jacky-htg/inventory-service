@@ -17,59 +17,59 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Receive struct
-type Receive struct {
-	Pb inventories.Receive
+// Delivery struct
+type Delivery struct {
+	Pb inventories.Delivery
 }
 
 // Get func
-func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
+func (u *Delivery) Get(ctx context.Context, db *sql.DB) error {
 	query := `
-		SELECT receives.id, receives.company_id, receives.branch_id, receives.branch_name, receives.purchase_id, receives.code, 
-		receives.date, receives.remark, receives.created_at, receives.created_by, receives.updated_at, receives.updated_by,
+		SELECT deliveries.id, deliveries.company_id, deliveries.branch_id, deliveries.branch_name, deliveries.sales_order_id, deliveries.code, 
+		deliveries.date, deliveries.remark, deliveries.created_at, deliveries.created_by, deliveries.updated_at, deliveries.updated_by,
 		json_agg(DISTINCT jsonb_build_object(
-			'id', receive_details.id,
-			'receive_id', receive_details.receive_id,
-			'product_id', receive_details.product_id,
+			'id', delivery_details.id,
+			'delivery_id', delivery_details.delivery_id,
+			'product_id', delivery_details.product_id,
 			'product_name', products.name,
 			'product_code', products.code,
-			'shelve_id', receive_details.shelve_id,
+			'shelve_id', delivery_details.shelve_id,
 			'shelve_code', shelves.code,
-			'expired_date', receive_details.expired_date
+			'barcode', delivery_details.barcode
 		)) as details
-		FROM receives 
-		JOIN receive_details ON receives.id = receive_details.receive_id
-		JOIN products ON receive_details.product_id = products.id
-		JOIN shelves ON receive_details.shelve_id = shelves.id
-		WHERE receives.id = $1
+		FROM deliveries 
+		JOIN delivery_details ON deliveries.id = delivery_details.delivery_id
+		JOIN products ON delivery_details.product_id = products.id
+		JOIN shelves ON delivery_details.shelve_id = shelves.id
+		WHERE deliveries.id = $1
 	`
 
 	stmt, err := db.PrepareContext(ctx, query)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Prepare statement Get receive: %v", err)
+		return status.Errorf(codes.Internal, "Prepare statement Get delivery: %v", err)
 	}
 	defer stmt.Close()
 
-	var dateReceive, createdAt, updatedAt time.Time
+	var dateDelivery, createdAt, updatedAt time.Time
 	var companyID, details string
 	err = stmt.QueryRowContext(ctx, u.Pb.GetId()).Scan(
-		&u.Pb.Id, &companyID, &u.Pb.BranchId, &u.Pb.BranchName, &u.Pb.PurchaseId, &u.Pb.Code, &dateReceive, &u.Pb.Remark,
+		&u.Pb.Id, &companyID, &u.Pb.BranchId, &u.Pb.BranchName, &u.Pb.SalesOrderId, &u.Pb.Code, &dateDelivery, &u.Pb.Remark,
 		&createdAt, &u.Pb.CreatedBy, &updatedAt, &u.Pb.UpdatedBy, &details,
 	)
 
 	if err == sql.ErrNoRows {
-		return status.Errorf(codes.NotFound, "Query Raw get by code receive: %v", err)
+		return status.Errorf(codes.NotFound, "Query Raw get by code delivery: %v", err)
 	}
 
 	if err != nil {
-		return status.Errorf(codes.Internal, "Query Raw get by code receive: %v", err)
+		return status.Errorf(codes.Internal, "Query Raw get by code delivery: %v", err)
 	}
 
 	if companyID != ctx.Value(app.Ctx("companyID")).(string) {
 		return status.Error(codes.Unauthenticated, "its not your company")
 	}
 
-	u.Pb.ReceiveDate, err = ptypes.TimestampProto(dateReceive)
+	u.Pb.DeliveryDate, err = ptypes.TimestampProto(dateDelivery)
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert date: %v", err)
 	}
@@ -84,35 +84,31 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
 	}
 
-	detailReceives := []struct {
+	detailDeliverys := []struct {
 		ID          string
-		ReceiveID   string
+		DeliveryID  string
 		ProductID   string
 		ProductName string
 		ProductCode string
 		ShelveID    string
 		ShelveCode  string
-		ExpiredDate time.Time
+		Barcode     string
 	}{}
-	err = json.Unmarshal([]byte(details), &detailReceives)
+	err = json.Unmarshal([]byte(details), &detailDeliverys)
 	if err != nil {
 		return status.Errorf(codes.Internal, "unmarshal access: %v", err)
 	}
 
-	for _, detail := range detailReceives {
-		protoExpiredDate, err := ptypes.TimestampProto(detail.ExpiredDate)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert proto expired date: %v", err)
-		}
-		u.Pb.Details = append(u.Pb.Details, &inventories.ReceiveDetail{
-			ExpiredDate: protoExpiredDate,
-			Id:          detail.ID,
+	for _, detail := range detailDeliverys {
+		u.Pb.Details = append(u.Pb.Details, &inventories.DeliveryDetail{
+			Barcode: detail.Barcode,
+			Id:      detail.ID,
 			Product: &inventories.Product{
 				Id:   detail.ProductID,
 				Code: detail.ProductCode,
 				Name: detail.ProductName,
 			},
-			ReceiveId: detail.ReceiveID,
+			DeliveryId: detail.DeliveryID,
 			Shelve: &inventories.Shelve{
 				Id:   detail.ShelveID,
 				Code: detail.ShelveCode,
@@ -124,33 +120,33 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 }
 
 // GetByCode func
-func (u *Receive) GetByCode(ctx context.Context, db *sql.DB) error {
+func (u *Delivery) GetByCode(ctx context.Context, db *sql.DB) error {
 	query := `
-		SELECT id, branch_id, branch_name, purchase_id, code, date, remark, created_at, created_by, updated_at, updated_by 
-		FROM receives WHERE receives.code = $1 AND receives.company_id = $2
+		SELECT id, branch_id, branch_name, sales_order_id, code, date, remark, created_at, created_by, updated_at, updated_by 
+		FROM deliveries WHERE deliveries.code = $1 AND deliveries.company_id = $2
 	`
 
 	stmt, err := db.PrepareContext(ctx, query)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Prepare statement Get by code receive: %v", err)
+		return status.Errorf(codes.Internal, "Prepare statement Get by code delivery: %v", err)
 	}
 	defer stmt.Close()
 
-	var dateReceive, createdAt, updatedAt time.Time
+	var dateDelivery, createdAt, updatedAt time.Time
 	err = stmt.QueryRowContext(ctx, u.Pb.GetCode(), ctx.Value(app.Ctx("companyID")).(string)).Scan(
-		&u.Pb.Id, &u.Pb.BranchId, &u.Pb.BranchName, &u.Pb.PurchaseId, &u.Pb.Code, &dateReceive, &u.Pb.Remark,
+		&u.Pb.Id, &u.Pb.BranchId, &u.Pb.BranchName, &u.Pb.SalesOrderId, &u.Pb.Code, &dateDelivery, &u.Pb.Remark,
 		&createdAt, &u.Pb.CreatedBy, &updatedAt, &u.Pb.UpdatedBy,
 	)
 
 	if err == sql.ErrNoRows {
-		return status.Errorf(codes.NotFound, "Query Raw get by code receive: %v", err)
+		return status.Errorf(codes.NotFound, "Query Raw get by code delivery: %v", err)
 	}
 
 	if err != nil {
-		return status.Errorf(codes.Internal, "Query Raw get by code receive: %v", err)
+		return status.Errorf(codes.Internal, "Query Raw get by code delivery: %v", err)
 	}
 
-	u.Pb.ReceiveDate, err = ptypes.TimestampProto(dateReceive)
+	u.Pb.DeliveryDate, err = ptypes.TimestampProto(dateDelivery)
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert date: %v", err)
 	}
@@ -168,9 +164,9 @@ func (u *Receive) GetByCode(ctx context.Context, db *sql.DB) error {
 	return nil
 }
 
-func (u *Receive) getCode(ctx context.Context, tx *sql.Tx) (string, error) {
+func (u *Delivery) getCode(ctx context.Context, tx *sql.Tx) (string, error) {
 	var count int
-	err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM receives 
+	err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM deliveries 
 			WHERE company_id = $1 AND to_char(created_at, 'YYYY-mm') = to_char(now(), 'YYYY-mm')`,
 		ctx.Value(app.Ctx("companyID")).(string)).Scan(&count)
 
@@ -178,19 +174,19 @@ func (u *Receive) getCode(ctx context.Context, tx *sql.Tx) (string, error) {
 		return "", status.Error(codes.Internal, err.Error())
 	}
 
-	return fmt.Sprintf("GR%d%d%d",
+	return fmt.Sprintf("DO%d%d%d",
 		time.Now().UTC().Year(),
 		int(time.Now().UTC().Month()),
 		(count + 1)), nil
 }
 
-// Create Receive
-func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
+// Create Delivery
+func (u *Delivery) Create(ctx context.Context, tx *sql.Tx) error {
 	u.Pb.Id = uuid.New().String()
 	now := time.Now().UTC()
 	u.Pb.CreatedBy = ctx.Value(app.Ctx("userID")).(string)
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateReceive, err := ptypes.Timestamp(u.Pb.GetReceiveDate())
+	dateDelivery, err := ptypes.Timestamp(u.Pb.GetDeliveryDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert Date: %v", err)
 	}
@@ -201,12 +197,12 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	query := `
-		INSERT INTO receives (id, company_id, branch_id, branch_name, purchase_id, code, date, remark, created_at, created_by, updated_at, updated_by) 
+		INSERT INTO deliveries (id, company_id, branch_id, branch_name, sales_order_id, code, date, remark, created_at, created_by, updated_at, updated_by) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Prepare insert receive: %v", err)
+		return status.Errorf(codes.Internal, "Prepare insert delivery: %v", err)
 	}
 	defer stmt.Close()
 
@@ -215,9 +211,9 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 		ctx.Value(app.Ctx("companyID")).(string),
 		u.Pb.GetBranchId(),
 		u.Pb.GetBranchName(),
-		u.Pb.GetPurchaseId(),
+		u.Pb.GetSalesOrderId(),
 		u.Pb.GetCode(),
-		dateReceive,
+		dateDelivery,
 		u.Pb.GetRemark(),
 		now,
 		u.Pb.GetCreatedBy(),
@@ -225,7 +221,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 		u.Pb.GetUpdatedBy(),
 	)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Exec insert receive: %v", err)
+		return status.Errorf(codes.Internal, "Exec insert delivery: %v", err)
 	}
 
 	u.Pb.CreatedAt, err = ptypes.TimestampProto(now)
@@ -236,16 +232,16 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 	u.Pb.UpdatedAt = u.Pb.CreatedAt
 
 	for _, detail := range u.Pb.GetDetails() {
-		pbReceiveDetail := inventories.ReceiveDetail{
-			ReceiveId:   u.Pb.GetId(),
-			ExpiredDate: detail.GetExpiredDate(),
-			Product:     detail.GetProduct(),
-			Shelve:      detail.GetShelve(),
+		pbDeliveryDetail := inventories.DeliveryDetail{
+			DeliveryId: u.Pb.GetId(),
+			Barcode:    detail.GetBarcode(),
+			Product:    detail.GetProduct(),
+			Shelve:     detail.GetShelve(),
 		}
-		receiveDetailModel := ReceiveDetail{}
-		receiveDetailModel.Pb = pbReceiveDetail
-		receiveDetailModel.PbReceive = u.Pb
-		err = receiveDetailModel.Create(ctx, tx)
+		deliveryDetailModel := DeliveryDetail{}
+		deliveryDetailModel.Pb = pbDeliveryDetail
+		deliveryDetailModel.PbDelivery = u.Pb
+		err = deliveryDetailModel.Create(ctx, tx)
 		if err != nil {
 			return err
 		}
@@ -254,18 +250,18 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 	return nil
 }
 
-// Update Receive
-func (u *Receive) Update(ctx context.Context, tx *sql.Tx) error {
+// Update Delivery
+func (u *Delivery) Update(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateReceive, err := ptypes.Timestamp(u.Pb.GetReceiveDate())
+	dateDelivery, err := ptypes.Timestamp(u.Pb.GetDeliveryDate())
 	if err != nil {
-		return status.Errorf(codes.Internal, "convert receive date: %v", err)
+		return status.Errorf(codes.Internal, "convert delivery date: %v", err)
 	}
 
 	query := `
-		UPDATE receives SET
-		purchase_id = $1,
+		UPDATE deliveries SET
+		sales_order_id = $1,
 		date = $2,
 		remark = $3, 
 		updated_at = $4, 
@@ -274,20 +270,20 @@ func (u *Receive) Update(ctx context.Context, tx *sql.Tx) error {
 	`
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Prepare update receive: %v", err)
+		return status.Errorf(codes.Internal, "Prepare update delivery: %v", err)
 	}
 	defer stmt.Close()
 
 	_, err = stmt.ExecContext(ctx,
-		u.Pb.GetPurchaseId(),
-		dateReceive,
+		u.Pb.GetSalesOrderId(),
+		dateDelivery,
 		u.Pb.GetRemark(),
 		now,
 		u.Pb.GetUpdatedBy(),
 		u.Pb.GetId(),
 	)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Exec update receive: %v", err)
+		return status.Errorf(codes.Internal, "Exec update delivery: %v", err)
 	}
 
 	u.Pb.UpdatedAt, err = ptypes.TimestampProto(now)
@@ -298,26 +294,26 @@ func (u *Receive) Update(ctx context.Context, tx *sql.Tx) error {
 	return nil
 }
 
-// Delete Receive
-func (u *Receive) Delete(ctx context.Context, db *sql.DB) error {
-	stmt, err := db.PrepareContext(ctx, `DELETE FROM receives WHERE id = $1`)
+// Delete Delivery
+func (u *Delivery) Delete(ctx context.Context, db *sql.DB) error {
+	stmt, err := db.PrepareContext(ctx, `DELETE FROM deliveries WHERE id = $1`)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Prepare delete receive: %v", err)
+		return status.Errorf(codes.Internal, "Prepare delete delivery: %v", err)
 	}
 	defer stmt.Close()
 
 	_, err = stmt.ExecContext(ctx, u.Pb.GetId())
 	if err != nil {
-		return status.Errorf(codes.Internal, "Exec delete receive: %v", err)
+		return status.Errorf(codes.Internal, "Exec delete delivery: %v", err)
 	}
 
 	return nil
 }
 
 // ListQuery builder
-func (u *Receive) ListQuery(ctx context.Context, db *sql.DB, in *inventories.ListReceiveRequest) (string, []interface{}, *inventories.ReceivePaginationResponse, error) {
-	var paginationResponse inventories.ReceivePaginationResponse
-	query := `SELECT id, company_id, branch_id, branch_name, purchase_id, code, date, remark, created_at, created_by, updated_at, updated_by FROM receives`
+func (u *Delivery) ListQuery(ctx context.Context, db *sql.DB, in *inventories.ListDeliveryRequest) (string, []interface{}, *inventories.DeliveryPaginationResponse, error) {
+	var paginationResponse inventories.DeliveryPaginationResponse
+	query := `SELECT id, company_id, branch_id, branch_name, sales_order_id, code, date, remark, created_at, created_by, updated_at, updated_by FROM deliveries`
 
 	where := []string{"company_id = $1"}
 	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
@@ -327,9 +323,9 @@ func (u *Receive) ListQuery(ctx context.Context, db *sql.DB, in *inventories.Lis
 		where = append(where, fmt.Sprintf(`branch_id = $%d`, len(paramQueries)))
 	}
 
-	if len(in.GetPurchaseId()) > 0 {
-		paramQueries = append(paramQueries, in.GetPurchaseId())
-		where = append(where, fmt.Sprintf(`purchase_id = $%d`, len(paramQueries)))
+	if len(in.GetSalesOrderId()) > 0 {
+		paramQueries = append(paramQueries, in.GetSalesOrderId())
+		where = append(where, fmt.Sprintf(`sales_order_id = $%d`, len(paramQueries)))
 	}
 
 	if len(in.GetPagination().GetSearch()) > 0 {
@@ -338,7 +334,7 @@ func (u *Receive) ListQuery(ctx context.Context, db *sql.DB, in *inventories.Lis
 	}
 
 	{
-		qCount := `SELECT COUNT(*) FROM receives`
+		qCount := `SELECT COUNT(*) FROM deliveries`
 		if len(where) > 0 {
 			qCount += " WHERE " + strings.Join(where, " AND ")
 		}
