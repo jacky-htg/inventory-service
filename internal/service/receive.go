@@ -37,7 +37,7 @@ func (u *Receive) Create(ctx context.Context, in *inventories.Receive) (*invento
 			return &receiveModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid purchase")
 		}
 
-		if in.GetDate().IsValid() {
+		if in.GetReceiveDate().IsValid() {
 			return &receiveModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid date")
 		}
 	}
@@ -88,13 +88,13 @@ func (u *Receive) Create(ctx context.Context, in *inventories.Receive) (*invento
 	}
 
 	receiveModel.Pb = inventories.Receive{
-		BranchId:   in.GetBranchId(),
-		BranchName: branch.GetName(),
-		Code:       in.GetCode(),
-		Date:       in.GetDate(),
-		PurchaseId: in.GetPurchaseId(),
-		Remark:     in.GetRemark(),
-		Details:    in.GetDetails(),
+		BranchId:    in.GetBranchId(),
+		BranchName:  branch.GetName(),
+		Code:        in.GetCode(),
+		ReceiveDate: in.GetReceiveDate(),
+		PurchaseId:  in.GetPurchaseId(),
+		Remark:      in.GetRemark(),
+		Details:     in.GetDetails(),
 	}
 
 	tx, err := u.Db.BeginTx(ctx, nil)
@@ -142,8 +142,8 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 		receiveModel.Pb.PurchaseId = in.GetPurchaseId()
 	}
 
-	if in.GetDate().IsValid() {
-		receiveModel.Pb.Date = in.GetDate()
+	if in.GetReceiveDate().IsValid() {
+		receiveModel.Pb.ReceiveDate = in.GetReceiveDate()
 	}
 
 	tx, err := u.Db.BeginTx(ctx, nil)
@@ -314,7 +314,7 @@ func (u *Receive) List(in *inventories.ListReceiveRequest, stream inventories.Re
 		var companyID string
 		var createdAt, updatedAt time.Time
 		err = rows.Scan(&pbReceive.Id, &companyID, &pbReceive.BranchId, &pbReceive.BranchName,
-			&pbReceive.Code, &pbReceive.Date, &pbReceive.Remark,
+			&pbReceive.Code, &pbReceive.ReceiveDate, &pbReceive.Remark,
 			&createdAt, &pbReceive.CreatedBy, &updatedAt, &pbReceive.UpdatedBy)
 		if err != nil {
 			return status.Errorf(codes.Internal, "scan data: %v", err)

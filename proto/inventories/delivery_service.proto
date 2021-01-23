@@ -1,0 +1,32 @@
+syntax = "proto3";
+package wiradata.inventories;
+
+option go_package = "pb/inventories;inventories";
+
+import "inventories/delivery_message.proto";
+import "inventories/generic_message.proto";
+
+message ListDeliveryRequest {
+  Pagination pagination = 1;
+  string branch_id = 2;
+  string sales_order_id = 3;
+}
+
+message DeliveryPaginationResponse {
+  Pagination pagination = 1;
+  string branch_id = 2;
+  string sales_order_id = 3;
+  uint32 count = 4;
+}
+
+message ListDeliveryResponse {
+  DeliveryPaginationResponse pagination = 1;
+  Delivery Delivery = 2; 
+}
+
+service DeliveryService {
+  rpc Create(Delivery) returns (Delivery) {}
+  rpc Update(Delivery) returns (Delivery) {}
+  rpc View(Id) returns (Delivery) {}
+  rpc List(ListDeliveryRequest) returns (stream ListDeliveryResponse) {}
+}

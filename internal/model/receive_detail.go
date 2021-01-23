@@ -89,7 +89,7 @@ func (u *ReceiveDetail) Create(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec insert receive detail: %v", err)
 	}
 
-	transactionDate, err := ptypes.Timestamp(u.PbReceive.GetDate())
+	transactionDate, err := ptypes.Timestamp(u.PbReceive.GetReceiveDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert transactiondate inventory: %v", err)
 	}

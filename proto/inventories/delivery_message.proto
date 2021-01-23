@@ -4,19 +4,19 @@ package wiradata.inventories;
 option go_package = "pb/inventories;inventories";
 
 import "google/protobuf/timestamp.proto";
-import "inventories/receive_detail_message.proto";
+import "inventories/delivery_detail_message.proto";
 
-message Receive {
+message Delivery {
   string id = 1;
   string branch_id = 3;
   string branch_name = 4;
-  string purchase_id = 5;
+  string sales_order_id = 5;
   string code = 6;
-  google.protobuf.Timestamp receive_date = 7;
+  google.protobuf.Timestamp delivery_date = 7;
   string remark = 8;
   google.protobuf.Timestamp created_at = 9;
   string created_by = 10;
   google.protobuf.Timestamp updated_at = 11;
   string updated_by = 12;
-  repeated ReceiveDetail details = 13;
+  repeated DeliveryDetail details = 13;
 }

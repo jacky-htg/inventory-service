@@ -69,7 +69,7 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 		return status.Error(codes.Unauthenticated, "its not your company")
 	}
 
-	u.Pb.Date, err = ptypes.TimestampProto(dateReceive)
+	u.Pb.ReceiveDate, err = ptypes.TimestampProto(dateReceive)
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert date: %v", err)
 	}
@@ -150,7 +150,7 @@ func (u *Receive) GetByCode(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "Query Raw get by code receive: %v", err)
 	}
 
-	u.Pb.Date, err = ptypes.TimestampProto(dateReceive)
+	u.Pb.ReceiveDate, err = ptypes.TimestampProto(dateReceive)
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert date: %v", err)
 	}
@@ -190,7 +190,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.CreatedBy = ctx.Value(app.Ctx("userID")).(string)
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateReceive, err := ptypes.Timestamp(u.Pb.GetDate())
+	dateReceive, err := ptypes.Timestamp(u.Pb.GetReceiveDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert Date: %v", err)
 	}
@@ -258,7 +258,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 func (u *Receive) Update(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateReceive, err := ptypes.Timestamp(u.Pb.GetDate())
+	dateReceive, err := ptypes.Timestamp(u.Pb.GetReceiveDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert receive date: %v", err)
 	}

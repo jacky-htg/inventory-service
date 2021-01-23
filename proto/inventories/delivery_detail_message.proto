@@ -1,0 +1,16 @@
+syntax = "proto3";
+package wiradata.inventories;
+
+option go_package = "pb/inventories;inventories";
+
+import "google/protobuf/timestamp.proto";
+import "inventories/product_message.proto";
+import "inventories/shelve_message.proto";
+
+message DeliveryDetail {
+  string id = 1;
+  string delivery_id = 2;
+  Product product = 3;
+  string barcode = 4;
+  Shelve shelve = 5;
+}
