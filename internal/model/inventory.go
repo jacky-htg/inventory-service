@@ -26,6 +26,38 @@ type Inventory struct {
 	ShelveID        string
 }
 
+// CheckBarcode func
+func (u *Inventory) CheckBarcode(ctx context.Context, db *sql.DB) error {
+	if len(u.BranchID) == 0 || len(u.Barcode) == 0 {
+		return status.Error(codes.NotFound, "branch or barcode empty on check barcode")
+	}
+
+	query := `SELECT branch_id FROM inventories WHERE company_id = $1 AND barcode = $2 ORDER BY transaction_date DESC LIMIT 1`
+	rows, err := db.QueryContext(ctx, query, ctx.Value(app.Ctx("companyID")).(string), u.Barcode)
+	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+	defer rows.Close()
+
+	var branchID string
+	for rows.Next() {
+		err = rows.Scan(&branchID)
+		if err != nil {
+			return status.Errorf(codes.Internal, "scan check barcode: %v", err)
+		}
+	}
+
+	if rows.Err() != nil {
+		return status.Errorf(codes.Internal, "rows check barcode: %v", err)
+	}
+
+	if branchID != u.BranchID {
+		return status.Error(codes.Unauthenticated, "barcode not your own")
+	}
+
+	return nil
+}
+
 // Get func
 func (u *Inventory) Get(ctx context.Context, tx *sql.Tx) error {
 	query := `

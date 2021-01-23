@@ -27,6 +27,8 @@ func (u *Receive) Create(ctx context.Context, in *inventories.Receive) (*invento
 	var receiveModel model.Receive
 	var err error
 
+	// TODO : if this month any closing stock, create transaction for thus month will be blocked
+
 	// basic validation
 	{
 		if len(in.GetBranchId()) == 0 {
@@ -117,6 +119,8 @@ func (u *Receive) Create(ctx context.Context, in *inventories.Receive) (*invento
 func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*inventories.Receive, error) {
 	var receiveModel model.Receive
 	var err error
+
+	// TODO : if this month any closing stock, create transaction for thus month will be blocked
 
 	// basic validation
 	{
