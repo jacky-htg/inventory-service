@@ -244,6 +244,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 		}
 		receiveDetailModel := ReceiveDetail{}
 		receiveDetailModel.Pb = pbReceiveDetail
+		receiveDetailModel.PbReceive = u.Pb
 		err = receiveDetailModel.Create(ctx, tx)
 		if err != nil {
 			return err

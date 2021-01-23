@@ -13,17 +13,17 @@ import (
 
 // Inventory struct
 type Inventory struct {
-	ID               string
-	CompanyID        string
-	BranchID         string
-	ProductID        string
-	Barcode          string
-	TransactionID    string
-	TransactionCode  string
-	TransaactionDate time.Time
-	Type             string
-	IsIn             bool
-	ShelveID         string
+	ID              string
+	CompanyID       string
+	BranchID        string
+	ProductID       string
+	Barcode         string
+	TransactionID   string
+	TransactionCode string
+	TransactionDate time.Time
+	Type            string
+	IsIn            bool
+	ShelveID        string
 }
 
 // Get func
@@ -31,7 +31,7 @@ func (u *Inventory) Get(ctx context.Context, tx *sql.Tx) error {
 	query := `
 		SELECT id, company_id, branch_id, product_id, barcode, transaction_id, transaction_code, transaction_date, type, in_out, shelve_id 
 		FROM inventories
-		WHERE company_id = $1 AND product_id = $2 AND barcode = $3 AND transaction_id = $4
+		WHERE company_id = $1 AND barcode = $2 AND transaction_id = $3
 	`
 
 	stmt, err := tx.PrepareContext(ctx, query)
@@ -40,9 +40,9 @@ func (u *Inventory) Get(ctx context.Context, tx *sql.Tx) error {
 	}
 	defer stmt.Close()
 
-	err = stmt.QueryRowContext(ctx, ctx.Value(app.Ctx("companyID")).(string), u.ProductID, u.Barcode, u.TransactionID).Scan(
+	err = stmt.QueryRowContext(ctx, ctx.Value(app.Ctx("companyID")).(string), u.Barcode, u.TransactionID).Scan(
 		&u.ID, &u.CompanyID, &u.BranchID, &u.ProductID, &u.Barcode,
-		&u.TransactionID, &u.TransactionCode, &u.TransaactionDate,
+		&u.TransactionID, &u.TransactionCode, &u.TransactionDate,
 		&u.Type, &u.IsIn, &u.ShelveID,
 	)
 
@@ -83,7 +83,7 @@ func (u *Inventory) Create(ctx context.Context, tx *sql.Tx) error {
 		u.Barcode,
 		u.TransactionID,
 		u.TransactionCode,
-		u.TransaactionDate,
+		u.TransactionDate,
 		u.Type,
 		u.IsIn,
 		u.ShelveID,
@@ -125,7 +125,7 @@ func (u *Inventory) Update(ctx context.Context, tx *sql.Tx) error {
 		u.Barcode,
 		u.TransactionID,
 		u.TransactionCode,
-		u.TransaactionDate,
+		u.TransactionDate,
 		u.Type,
 		u.IsIn,
 		u.ShelveID,

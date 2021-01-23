@@ -15,7 +15,8 @@ import (
 
 // ReceiveDetail struct
 type ReceiveDetail struct {
-	Pb inventories.ReceiveDetail
+	Pb        inventories.ReceiveDetail
+	PbReceive inventories.Receive
 }
 
 // Get func
@@ -88,6 +89,27 @@ func (u *ReceiveDetail) Create(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec insert receive detail: %v", err)
 	}
 
+	transactionDate, err := ptypes.Timestamp(u.PbReceive.GetDate())
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert transactiondate inventory: %v", err)
+	}
+	inventory := Inventory{
+		Barcode:         u.Pb.GetId(),
+		BranchID:        u.PbReceive.GetBranchId(),
+		CompanyID:       ctx.Value(app.Ctx("companyID")).(string),
+		IsIn:            true,
+		ProductID:       u.Pb.GetProduct().GetId(),
+		ShelveID:        u.Pb.GetShelve().GetId(),
+		TransactionDate: transactionDate,
+		TransactionCode: u.PbReceive.GetCode(),
+		TransactionID:   u.PbReceive.GetId(),
+		Type:            "GR",
+	}
+	err = inventory.Create(ctx, tx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -116,6 +138,22 @@ func (u *ReceiveDetail) Update(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec update receive detail: %v", err)
 	}
 
+	inventory := Inventory{
+		Barcode:       u.Pb.GetId(),
+		TransactionID: u.PbReceive.GetId(),
+	}
+	err = inventory.Get(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	inventory.ProductID = u.Pb.GetProduct().GetId()
+	inventory.ShelveID = u.Pb.GetShelve().GetId()
+	err = inventory.Update(ctx, tx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -132,5 +170,14 @@ func (u *ReceiveDetail) Delete(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec delete receive detail: %v", err)
 	}
 
-	return nil
+	inventory := Inventory{
+		Barcode:       u.Pb.GetId(),
+		TransactionID: u.Pb.GetReceiveId(),
+	}
+	err = inventory.Get(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	return inventory.Delete(ctx, tx)
 }
