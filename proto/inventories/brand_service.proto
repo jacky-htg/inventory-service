@@ -15,6 +15,6 @@ service BrandService {
   rpc Create(Brand) returns (Brand) {}
   rpc Update(Brand) returns (Brand) {}
   rpc View(Id) returns (Brand) {}
-  rpc Delete(Id) returns (Boolean) {}
+  rpc Delete(Id) returns (MyBoolean) {}
   rpc List(Pagination) returns (stream ListBrandResponse) {}
 }

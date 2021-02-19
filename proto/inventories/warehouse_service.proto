@@ -26,6 +26,6 @@ service WarehouseService {
   rpc Create(Warehouse) returns (Warehouse) {}
   rpc Update(Warehouse) returns (Warehouse) {}
   rpc View(Id) returns (Warehouse) {}
-  rpc Delete(Id) returns (Boolean) {}
+  rpc Delete(Id) returns (MyBoolean) {}
   rpc List(ListWarehouseRequest) returns (stream ListWarehouseResponse) {}
 }

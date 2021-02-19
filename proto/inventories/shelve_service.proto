@@ -26,6 +26,6 @@ service ShelveService {
   rpc Create(Shelve) returns (Shelve) {}
   rpc Update(Shelve) returns (Shelve) {}
   rpc View(Id) returns (Shelve) {}
-  rpc Delete(Id) returns (Boolean) {}
+  rpc Delete(Id) returns (MyBoolean) {}
   rpc List(ListShelveRequest) returns (stream ListShelveResponse) {}
 }

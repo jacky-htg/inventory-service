@@ -28,6 +28,6 @@ service ProductService {
   rpc Create(Product) returns (Product) {}
   rpc Update(Product) returns (Product) {}
   rpc View(Id) returns (Product) {}
-  rpc Delete(Id) returns (Boolean) {}
+  rpc Delete(Id) returns (MyBoolean) {}
   rpc List(ListProductRequest) returns (stream ListProductResponse) {}
 }
