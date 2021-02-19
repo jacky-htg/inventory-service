@@ -243,7 +243,19 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 			Product:     detail.GetProduct(),
 			Shelve:      detail.GetShelve(),
 		}
-		receiveDetailModel.PbReceive = u.Pb
+		receiveDetailModel.PbReceive = inventories.Receive{
+			Id:          u.Pb.Id,
+			BranchId:    u.Pb.BranchId,
+			BranchName:  u.Pb.BranchName,
+			PurchaseId:  u.Pb.PurchaseId,
+			Code:        u.Pb.Code,
+			ReceiveDate: u.Pb.ReceiveDate,
+			Remark:      u.Pb.Remark,
+			CreatedAt:   u.Pb.CreatedAt,
+			CreatedBy:   u.Pb.CreatedBy,
+			UpdatedAt:   u.Pb.UpdatedAt,
+			UpdatedBy:   u.Pb.UpdatedBy,
+		}
 		err = receiveDetailModel.Create(ctx, tx)
 		if err != nil {
 			return err
