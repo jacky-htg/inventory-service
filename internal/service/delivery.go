@@ -223,14 +223,26 @@ func (u *Delivery) Update(ctx context.Context, in *inventories.Delivery) (*inven
 			}
 
 			// operasi insert
-			pbDeliveryDetail := inventories.DeliveryDetail{
+			deliveryDetailModel := model.DeliveryDetail{Pb: inventories.DeliveryDetail{
 				DeliveryId: deliveryModel.Pb.GetId(),
 				Barcode:    detail.GetBarcode(),
 				Product:    detail.GetProduct(),
 				Shelve:     detail.GetShelve(),
+			}}
+			deliveryDetailModel.PbDelivery = inventories.Delivery{
+				Id:           deliveryModel.Pb.Id,
+				BranchId:     deliveryModel.Pb.BranchId,
+				BranchName:   deliveryModel.Pb.BranchName,
+				SalesOrderId: deliveryModel.Pb.SalesOrderId,
+				Code:         deliveryModel.Pb.Code,
+				DeliveryDate: deliveryModel.Pb.DeliveryDate,
+				Remark:       deliveryModel.Pb.Remark,
+				CreatedAt:    deliveryModel.Pb.CreatedAt,
+				CreatedBy:    deliveryModel.Pb.CreatedBy,
+				UpdatedAt:    deliveryModel.Pb.UpdatedAt,
+				UpdatedBy:    deliveryModel.Pb.UpdatedBy,
+				Details:      deliveryModel.Pb.Details,
 			}
-			deliveryDetailModel := model.DeliveryDetail{Pb: pbDeliveryDetail}
-			deliveryDetailModel.PbDelivery = deliveryModel.Pb
 			err = deliveryDetailModel.Create(ctx, tx)
 			if err != nil {
 				tx.Rollback()
