@@ -255,11 +255,10 @@ func (u *Delivery) Update(ctx context.Context, in *inventories.Delivery) (*inven
 
 	// delete existing detail
 	for _, data := range deliveryModel.Pb.GetDetails() {
-		pbDeliveryDetail := inventories.DeliveryDetail{
+		deliveryDetailModel := model.DeliveryDetail{Pb: inventories.DeliveryDetail{
 			DeliveryId: deliveryModel.Pb.GetId(),
 			Id:         data.GetId(),
-		}
-		deliveryDetailModel := model.DeliveryDetail{Pb: pbDeliveryDetail}
+		}}
 		err = deliveryDetailModel.Delete(ctx, tx)
 		if err != nil {
 			tx.Rollback()
