@@ -236,14 +236,13 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 	u.Pb.UpdatedAt = u.Pb.CreatedAt
 
 	for _, detail := range u.Pb.GetDetails() {
-		pbReceiveDetail := inventories.ReceiveDetail{
+		receiveDetailModel := ReceiveDetail{}
+		receiveDetailModel.Pb = inventories.ReceiveDetail{
 			ReceiveId:   u.Pb.GetId(),
 			ExpiredDate: detail.GetExpiredDate(),
 			Product:     detail.GetProduct(),
 			Shelve:      detail.GetShelve(),
 		}
-		receiveDetailModel := ReceiveDetail{}
-		receiveDetailModel.Pb = pbReceiveDetail
 		receiveDetailModel.PbReceive = u.Pb
 		err = receiveDetailModel.Create(ctx, tx)
 		if err != nil {
