@@ -71,7 +71,7 @@ func isYourBranch(
 			return status.Error(codes.Unauthenticated, "its not your branch")
 		}
 	} else if len(userLogin.GetRegionId()) > 0 {
-		region, err := getRegion(ctx, regionClient, users.Region{Id: userLogin.GetRegionId()})
+		region, err := getRegion(ctx, regionClient, &users.Region{Id: userLogin.GetRegionId()})
 		if err != nil {
 			return err
 		}
@@ -119,7 +119,7 @@ func getUserLogin(ctx context.Context, userClient users.UserServiceClient) (*use
 	return userLogin, nil
 }
 
-func getRegion(ctx context.Context, regionClient users.RegionServiceClient, r users.Region) (*users.Region, error) {
+func getRegion(ctx context.Context, regionClient users.RegionServiceClient, r *users.Region) (*users.Region, error) {
 	region, err := regionClient.View(setMetadata(ctx), &users.Id{Id: r.GetId()})
 
 	if err != nil {
