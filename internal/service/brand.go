@@ -129,8 +129,8 @@ func (u *Brand) View(ctx context.Context, in *inventories.Id) (*inventories.Bran
 }
 
 // Delete Brand
-func (u *Brand) Delete(ctx context.Context, in *inventories.Id) (*inventories.Boolean, error) {
-	var output inventories.Boolean
+func (u *Brand) Delete(ctx context.Context, in *inventories.Id) (*inventories.MyBoolean, error) {
+	var output inventories.MyBoolean
 	output.Boolean = false
 
 	var brandModel model.Brand

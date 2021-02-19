@@ -180,8 +180,8 @@ func (u *Product) View(ctx context.Context, in *inventories.Id) (*inventories.Pr
 }
 
 // Delete Product
-func (u *Product) Delete(ctx context.Context, in *inventories.Id) (*inventories.Boolean, error) {
-	var output inventories.Boolean
+func (u *Product) Delete(ctx context.Context, in *inventories.Id) (*inventories.MyBoolean, error) {
+	var output inventories.MyBoolean
 	output.Boolean = false
 
 	var productModel model.Product

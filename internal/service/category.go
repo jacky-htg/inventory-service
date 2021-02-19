@@ -14,7 +14,7 @@ type Category struct {
 }
 
 // List Category
-func (u *Category) List(in *inventories.Empty, stream inventories.CategoryService_ListServer) error {
+func (u *Category) List(in *inventories.MyEmpty, stream inventories.CategoryService_ListServer) error {
 	ctx := stream.Context()
 	rows, err := u.Db.QueryContext(ctx, `SELECT id, name FROM categories`)
 	if err != nil {

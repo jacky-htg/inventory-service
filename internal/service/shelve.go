@@ -136,8 +136,8 @@ func (u *Shelve) View(ctx context.Context, in *inventories.Id) (*inventories.She
 }
 
 // Delete Shelve
-func (u *Shelve) Delete(ctx context.Context, in *inventories.Id) (*inventories.Boolean, error) {
-	var output inventories.Boolean
+func (u *Shelve) Delete(ctx context.Context, in *inventories.Id) (*inventories.MyBoolean, error) {
+	var output inventories.MyBoolean
 	output.Boolean = false
 
 	var shelveModel model.Shelve

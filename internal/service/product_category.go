@@ -134,8 +134,8 @@ func (u *ProductCategory) View(ctx context.Context, in *inventories.Id) (*invent
 }
 
 // Delete ProductCategory
-func (u *ProductCategory) Delete(ctx context.Context, in *inventories.Id) (*inventories.Boolean, error) {
-	var output inventories.Boolean
+func (u *ProductCategory) Delete(ctx context.Context, in *inventories.Id) (*inventories.MyBoolean, error) {
+	var output inventories.MyBoolean
 	output.Boolean = false
 
 	var productCategoryModel model.ProductCategory
