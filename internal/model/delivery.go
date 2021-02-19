@@ -232,15 +232,26 @@ func (u *Delivery) Create(ctx context.Context, tx *sql.Tx) error {
 	u.Pb.UpdatedAt = u.Pb.CreatedAt
 
 	for _, detail := range u.Pb.GetDetails() {
-		pbDeliveryDetail := inventories.DeliveryDetail{
+		deliveryDetailModel := DeliveryDetail{}
+		deliveryDetailModel.Pb = inventories.DeliveryDetail{
 			DeliveryId: u.Pb.GetId(),
 			Barcode:    detail.GetBarcode(),
 			Product:    detail.GetProduct(),
 			Shelve:     detail.GetShelve(),
 		}
-		deliveryDetailModel := DeliveryDetail{}
-		deliveryDetailModel.Pb = pbDeliveryDetail
-		deliveryDetailModel.PbDelivery = u.Pb
+		deliveryDetailModel.PbDelivery = inventories.Delivery{
+			Id:           u.Pb.Id,
+			BranchId:     u.Pb.BranchId,
+			BranchName:   u.Pb.BranchName,
+			SalesOrderId: u.Pb.SalesOrderId,
+			Code:         u.Pb.Code,
+			DeliveryDate: u.Pb.DeliveryDate,
+			Remark:       u.Pb.Remark,
+			CreatedAt:    u.Pb.CreatedAt,
+			CreatedBy:    u.Pb.CreatedBy,
+			UpdatedAt:    u.Pb.UpdatedAt,
+			UpdatedBy:    u.Pb.UpdatedBy,
+		}
 		err = deliveryDetailModel.Create(ctx, tx)
 		if err != nil {
 			return err
