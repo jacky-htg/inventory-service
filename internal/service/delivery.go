@@ -76,16 +76,17 @@ func (u *Delivery) Create(ctx context.Context, in *inventories.Delivery) (*inven
 
 		if len(detail.GetBarcode()) == 0 {
 			return &deliveryModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid barcode")
-		} else {
-			inventory := model.Inventory{
-				BranchID: in.GetBranchId(),
-				Barcode:  detail.GetBarcode(),
-			}
-			err = inventory.CheckBarcode(ctx, u.Db)
-			if err != nil {
-				return &deliveryModel.Pb, err
-			}
 		}
+
+		inventory := model.Inventory{
+			BranchID: in.GetBranchId(),
+			Barcode:  detail.GetBarcode(),
+		}
+		err = inventory.CheckBarcode(ctx, u.Db)
+		if err != nil {
+			return &deliveryModel.Pb, err
+		}
+
 	}
 
 	err = isYourBranch(ctx, u.UserClient, u.RegionClient, u.BranchClient, in.GetBranchId())

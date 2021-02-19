@@ -210,7 +210,7 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 			receiveDetailModel.Pb.ExpiredDate = detail.GetExpiredDate()
 			receiveDetailModel.Pb.Product = detail.GetProduct()
 			receiveDetailModel.Pb.Shelve = detail.GetShelve()
-			receiveDetailModel.PbReceive = receiveModel.Pb
+			receiveDetailModel.PbReceive = &receiveModel.Pb
 			err = receiveDetailModel.Update(ctx, tx)
 			if err != nil {
 				tx.Rollback()
