@@ -225,9 +225,9 @@ var migrations = []darwin.Migration{
 			receive_return_id	char(36) NOT NULL,
 			product_id char(36) NOT NULL,
 			shelve_id char(36) NOT NULL,
-			CONSTRAINT fk_receiving_return_details_to_receiving_returns FOREIGN KEY (receiving_return_id) REFERENCES receiving_returns(id) ON DELETE CASCADE ON UPDATE CASCADE,
-			CONSTRAINT fk_receiving_return_details_to_products FOREIGN KEY (product_id) REFERENCES products(id),
-			CONSTRAINT fk_receiving_return_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
+			CONSTRAINT fk_receive_return_details_to_receive_returns FOREIGN KEY (receive_return_id) REFERENCES receive_returns(id) ON DELETE CASCADE ON UPDATE CASCADE,
+			CONSTRAINT fk_receive_return_details_to_products FOREIGN KEY (product_id) REFERENCES products(id),
+			CONSTRAINT fk_receive_return_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
 		);`,
 	},
 }
