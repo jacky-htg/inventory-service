@@ -210,7 +210,20 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 			receiveDetailModel.Pb.ExpiredDate = detail.GetExpiredDate()
 			receiveDetailModel.Pb.Product = detail.GetProduct()
 			receiveDetailModel.Pb.Shelve = detail.GetShelve()
-			receiveDetailModel.PbReceive = &receiveModel.Pb
+			receiveDetailModel.PbReceive = inventories.Receive{
+				Id:          receiveModel.Pb.Id,
+				BranchId:    receiveModel.Pb.BranchId,
+				BranchName:  receiveModel.Pb.BranchName,
+				PurchaseId:  receiveModel.Pb.PurchaseId,
+				Code:        receiveModel.Pb.Code,
+				ReceiveDate: receiveModel.Pb.ReceiveDate,
+				Remark:      receiveModel.Pb.Remark,
+				CreatedAt:   receiveModel.Pb.CreatedAt,
+				CreatedBy:   receiveModel.Pb.CreatedBy,
+				UpdatedAt:   receiveModel.Pb.UpdatedAt,
+				UpdatedBy:   receiveModel.Pb.UpdatedBy,
+				Details:     receiveModel.Pb.Details,
+			}
 			err = receiveDetailModel.Update(ctx, tx)
 			if err != nil {
 				tx.Rollback()
@@ -227,14 +240,26 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 
 		} else {
 			// operasi insert
-			pbReceiveDetail := inventories.ReceiveDetail{
+			receiveDetailModel := model.ReceiveDetail{Pb: inventories.ReceiveDetail{
 				ReceiveId:   receiveModel.Pb.GetId(),
 				ExpiredDate: detail.GetExpiredDate(),
 				Product:     detail.GetProduct(),
 				Shelve:      detail.GetShelve(),
+			}}
+			receiveDetailModel.PbReceive = inventories.Receive{
+				Id:          receiveModel.Pb.Id,
+				BranchId:    receiveModel.Pb.BranchId,
+				BranchName:  receiveModel.Pb.BranchName,
+				PurchaseId:  receiveModel.Pb.PurchaseId,
+				Code:        receiveModel.Pb.Code,
+				ReceiveDate: receiveModel.Pb.ReceiveDate,
+				Remark:      receiveModel.Pb.Remark,
+				CreatedAt:   receiveModel.Pb.CreatedAt,
+				CreatedBy:   receiveModel.Pb.CreatedBy,
+				UpdatedAt:   receiveModel.Pb.UpdatedAt,
+				UpdatedBy:   receiveModel.Pb.UpdatedBy,
+				Details:     receiveModel.Pb.Details,
 			}
-			receiveDetailModel := model.ReceiveDetail{Pb: pbReceiveDetail}
-			receiveDetailModel.PbReceive = receiveModel.Pb
 			err = receiveDetailModel.Create(ctx, tx)
 			if err != nil {
 				tx.Rollback()
@@ -247,11 +272,10 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 
 	// delete existing detail
 	for _, data := range receiveModel.Pb.GetDetails() {
-		pbReceiveDetail := inventories.ReceiveDetail{
+		receiveDetailModel := model.ReceiveDetail{Pb: inventories.ReceiveDetail{
 			ReceiveId: receiveModel.Pb.GetId(),
 			Id:        data.GetId(),
-		}
-		receiveDetailModel := model.ReceiveDetail{Pb: pbReceiveDetail}
+		}}
 		err = receiveDetailModel.Delete(ctx, tx)
 		if err != nil {
 			tx.Rollback()
