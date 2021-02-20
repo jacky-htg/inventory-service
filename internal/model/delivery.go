@@ -26,7 +26,7 @@ type Delivery struct {
 func (u *Delivery) Get(ctx context.Context, db *sql.DB) error {
 	query := `
 		SELECT deliveries.id, deliveries.company_id, deliveries.branch_id, deliveries.branch_name, deliveries.sales_order_id, deliveries.code, 
-		deliveries.date, deliveries.remark, deliveries.created_at, deliveries.created_by, deliveries.updated_at, deliveries.updated_by,
+		deliveries.delivery_date, deliveries.remark, deliveries.created_at, deliveries.created_by, deliveries.updated_at, deliveries.updated_by,
 		json_agg(DISTINCT jsonb_build_object(
 			'id', delivery_details.id,
 			'delivery_id', delivery_details.delivery_id,
@@ -122,7 +122,7 @@ func (u *Delivery) Get(ctx context.Context, db *sql.DB) error {
 // GetByCode func
 func (u *Delivery) GetByCode(ctx context.Context, db *sql.DB) error {
 	query := `
-		SELECT id, branch_id, branch_name, sales_order_id, code, date, remark, created_at, created_by, updated_at, updated_by 
+		SELECT id, branch_id, branch_name, sales_order_id, code, delivery_date, remark, created_at, created_by, updated_at, updated_by 
 		FROM deliveries WHERE deliveries.code = $1 AND deliveries.company_id = $2
 	`
 
@@ -197,7 +197,7 @@ func (u *Delivery) Create(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	query := `
-		INSERT INTO deliveries (id, company_id, branch_id, branch_name, sales_order_id, code, date, remark, created_at, created_by, updated_at, updated_by) 
+		INSERT INTO deliveries (id, company_id, branch_id, branch_name, sales_order_id, code, delivery_date, remark, created_at, created_by, updated_at, updated_by) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
 	stmt, err := tx.PrepareContext(ctx, query)
@@ -273,7 +273,7 @@ func (u *Delivery) Update(ctx context.Context, tx *sql.Tx) error {
 	query := `
 		UPDATE deliveries SET
 		sales_order_id = $1,
-		date = $2,
+		delivery_date = $2,
 		remark = $3, 
 		updated_at = $4, 
 		updated_by= $5
@@ -324,7 +324,7 @@ func (u *Delivery) Delete(ctx context.Context, db *sql.DB) error {
 // ListQuery builder
 func (u *Delivery) ListQuery(ctx context.Context, db *sql.DB, in *inventories.ListDeliveryRequest) (string, []interface{}, *inventories.DeliveryPaginationResponse, error) {
 	var paginationResponse inventories.DeliveryPaginationResponse
-	query := `SELECT id, company_id, branch_id, branch_name, sales_order_id, code, date, remark, created_at, created_by, updated_at, updated_by FROM deliveries`
+	query := `SELECT id, company_id, branch_id, branch_name, sales_order_id, code, delivery_date, remark, created_at, created_by, updated_at, updated_by FROM deliveries`
 
 	where := []string{"company_id = $1"}
 	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
