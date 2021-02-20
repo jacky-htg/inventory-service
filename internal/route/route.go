@@ -37,4 +37,12 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 	}
 	inventories.RegisterReceiveServiceServer(grpcServer, &receiveServer)
 
+	deliveryServer := service.Delivery{
+		Db:           db,
+		UserClient:   users.NewUserServiceClient((userConn)),
+		RegionClient: users.NewRegionServiceClient(userConn),
+		BranchClient: users.NewBranchServiceClient(userConn),
+	}
+	inventories.RegisterDeliveryServiceServer(grpcServer, &deliveryServer)
+
 }
