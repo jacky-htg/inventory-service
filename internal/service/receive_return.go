@@ -107,3 +107,29 @@ func (u *ReceiveReturn) Create(ctx context.Context, in *inventories.ReceiveRetur
 
 	return &receiveReturnModel.Pb, nil
 }
+
+// View ReceiveReturn
+func (u *ReceiveReturn) View(ctx context.Context, in *inventories.Id) (*inventories.ReceiveReturn, error) {
+	var receiveReturnModel model.ReceiveReturn
+	var err error
+
+	// basic validation
+	{
+		if len(in.GetId()) == 0 {
+			return &receiveReturnModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid id")
+		}
+		receiveReturnModel.Pb.Id = in.GetId()
+	}
+
+	ctx, err = getMetadata(ctx)
+	if err != nil {
+		return &receiveReturnModel.Pb, err
+	}
+
+	err = receiveReturnModel.Get(ctx, u.Db)
+	if err != nil {
+		return &receiveReturnModel.Pb, err
+	}
+
+	return &receiveReturnModel.Pb, nil
+}
