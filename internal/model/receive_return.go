@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
+	"strings"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -252,6 +253,65 @@ func (u *ReceiveReturn) Delete(ctx context.Context, db *sql.DB) error {
 	}
 
 	return nil
+}
+
+// ListQuery builder
+func (u *ReceiveReturn) ListQuery(ctx context.Context, db *sql.DB, in *inventories.ListReceiveReturnRequest) (string, []interface{}, *inventories.ReceiveReturnPaginationResponse, error) {
+	var paginationResponse inventories.ReceiveReturnPaginationResponse
+	query := `SELECT id, company_id, branch_id, branch_name, receiving_id, code, return_date, remark, created_at, created_by, updated_at, updated_by FROM receive_returns`
+
+	where := []string{"company_id = $1"}
+	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
+
+	if len(in.GetBranchId()) > 0 {
+		paramQueries = append(paramQueries, in.GetBranchId())
+		where = append(where, fmt.Sprintf(`branch_id = $%d`, len(paramQueries)))
+	}
+
+	if len(in.GetReceiveId()) > 0 {
+		paramQueries = append(paramQueries, in.GetReceiveId())
+		where = append(where, fmt.Sprintf(`receiving_id = $%d`, len(paramQueries)))
+	}
+
+	if len(in.GetPagination().GetSearch()) > 0 {
+		paramQueries = append(paramQueries, in.GetPagination().GetSearch())
+		where = append(where, fmt.Sprintf(`(code ILIKE $%d OR remark ILIKE $%d)`, len(paramQueries), len(paramQueries)))
+	}
+
+	{
+		qCount := `SELECT COUNT(*) FROM receive_returns`
+		if len(where) > 0 {
+			qCount += " WHERE " + strings.Join(where, " AND ")
+		}
+		var count int
+		err := db.QueryRowContext(ctx, qCount, paramQueries...).Scan(&count)
+		if err != nil && err != sql.ErrNoRows {
+			return query, paramQueries, &paginationResponse, status.Error(codes.Internal, err.Error())
+		}
+
+		paginationResponse.Count = uint32(count)
+	}
+
+	if len(where) > 0 {
+		query += ` WHERE ` + strings.Join(where, " AND ")
+	}
+
+	if len(in.GetPagination().GetOrderBy()) == 0 || !(in.GetPagination().GetOrderBy() == "code") {
+		if in.GetPagination() == nil {
+			in.Pagination = &inventories.Pagination{OrderBy: "created_at"}
+		} else {
+			in.GetPagination().OrderBy = "created_at"
+		}
+	}
+
+	query += ` ORDER BY ` + in.GetPagination().GetOrderBy() + ` ` + in.GetPagination().GetSort().String()
+
+	if in.GetPagination().GetLimit() > 0 {
+		query += fmt.Sprintf(` LIMIT $%d OFFSET $%d`, (len(paramQueries) + 1), (len(paramQueries) + 2))
+		paramQueries = append(paramQueries, in.GetPagination().GetLimit(), in.GetPagination().GetOffset())
+	}
+
+	return query, paramQueries, &paginationResponse, nil
 }
 
 func (u *ReceiveReturn) getCode(ctx context.Context, tx *sql.Tx) (string, error) {
