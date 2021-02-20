@@ -230,6 +230,40 @@ var migrations = []darwin.Migration{
 			CONSTRAINT fk_receive_return_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
 		);`,
 	},
+	{
+		Version:     14,
+		Description: "Add Delivery Return",
+		Script: `
+		CREATE TABLE delivery_returns (
+			id char(36) NOT NULL PRIMARY KEY,
+			company_id	char(36) NOT NULL,
+			branch_id char(36) NOT NULL,
+			branch_name varchar(100) NOT NULL,
+			delivery_id char(36) NOT NULL,
+			code	CHAR(13) NOT NULL,
+			return_date	DATE NOT NULL,
+			remark VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			created_by char(36) NOT NULL,
+			updated_by char(36) NOT NULL,
+			UNIQUE(company_id, code)
+		);`,
+	},
+	{
+		Version:     15,
+		Description: "Add Delivery Return Details",
+		Script: `
+		CREATE TABLE delivery_return_details (
+			id char(36) NOT NULL PRIMARY KEY,
+			delivery_return_id	char(36) NOT NULL,
+			product_id char(36) NOT NULL,
+			shelve_id char(36) NOT NULL,
+			CONSTRAINT fk_delivery_return_details_to_delivery_returns FOREIGN KEY (delivery_return_id) REFERENCES delivery_returns(id) ON DELETE CASCADE ON UPDATE CASCADE,
+			CONSTRAINT fk_delivery_return_details_to_products FOREIGN KEY (product_id) REFERENCES products(id),
+			CONSTRAINT fk_delivery_return_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
+		);`,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
