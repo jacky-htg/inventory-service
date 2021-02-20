@@ -162,6 +162,40 @@ var migrations = []darwin.Migration{
 			CONSTRAINT fk_receiving_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
 		);`,
 	},
+	{
+		Version:     10,
+		Description: "Add Deliveries",
+		Script: `
+		CREATE TABLE deliveries (
+			id char(36) NOT NULL PRIMARY KEY,
+			company_id	char(36) NOT NULL,
+			branch_id char(36) NOT NULL,
+			branch_name varchar(100) NOT NULL,
+			sales_id char(36) NOT NULL,
+			code	CHAR(13) NOT NULL,
+			date	DATE NOT NULL,
+			remark VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			created_by char(36) NOT NULL,
+			updated_by char(36) NOT NULL,
+			UNIQUE(company_id, code)
+		);`,
+	},
+	{
+		Version:     11,
+		Description: "Add Delivery Details",
+		Script: `
+		CREATE TABLE delivery_details (
+			id char(36) NOT NULL PRIMARY KEY,
+			delivery_id	char(36) NOT NULL,
+			product_id char(36) NOT NULL,
+			shelve_id char(36) NOT NULL,
+			CONSTRAINT fk_delivery_details_to_deliveries FOREIGN KEY (delivery_id) REFERENCES deliveries(id) ON DELETE CASCADE ON UPDATE CASCADE,
+			CONSTRAINT fk_delivery_details_to_products FOREIGN KEY (product_id) REFERENCES products(id),
+			CONSTRAINT fk_delivery_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
+		);`,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
