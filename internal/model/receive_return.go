@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
@@ -17,6 +18,100 @@ import (
 // ReceiveReturn struct
 type ReceiveReturn struct {
 	Pb inventories.ReceiveReturn
+}
+
+// Get func
+func (u *ReceiveReturn) Get(ctx context.Context, db *sql.DB) error {
+	query := `
+		SELECT receive_returns.id, receive_returns.company_id, receive_returns.branch_id, receive_returns.branch_name, receive_returns.receiving_id, receive_returns.code, 
+		receive_returns.return_date, receive_returns.remark, receive_returns.created_at, receive_returns.created_by, receive_returns.updated_at, receive_returns.updated_by,
+		json_agg(DISTINCT jsonb_build_object(
+			'id', receive_return_details.id,
+			'receive_return_id', receive_return_details.receive_return_id,
+			'product_id', receive_return_details.product_id,
+			'product_name', products.name,
+			'product_code', products.code,
+			'shelve_id', receive_return_details.shelve_id,
+			'shelve_code', shelves.code
+		)) as details
+		FROM receive_returns 
+		JOIN receive_return_details ON receive_returns.id = receive_return_details.receive_return_id
+		JOIN products ON receive_return_details.product_id = products.id
+		JOIN shelves ON receive_return_details.shelve_id = shelves.id
+		WHERE receive_returns.id = $1
+	`
+
+	stmt, err := db.PrepareContext(ctx, query)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare statement Get receive return: %v", err)
+	}
+	defer stmt.Close()
+
+	var dateReturn, createdAt, updatedAt time.Time
+	var companyID, details string
+	err = stmt.QueryRowContext(ctx, u.Pb.GetId()).Scan(
+		&u.Pb.Id, &companyID, &u.Pb.BranchId, &u.Pb.BranchName, &u.Pb.Receive.Id, &u.Pb.Code, &dateReturn, &u.Pb.Remark,
+		&createdAt, &u.Pb.CreatedBy, &updatedAt, &u.Pb.UpdatedBy, &details,
+	)
+
+	if err == sql.ErrNoRows {
+		return status.Errorf(codes.NotFound, "Query Raw get by code receive return: %v", err)
+	}
+
+	if err != nil {
+		return status.Errorf(codes.Internal, "Query Raw get by code receive return: %v", err)
+	}
+
+	if companyID != ctx.Value(app.Ctx("companyID")).(string) {
+		return status.Error(codes.Unauthenticated, "its not your company")
+	}
+
+	u.Pb.ReturnDate, err = ptypes.TimestampProto(dateReturn)
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert date: %v", err)
+	}
+
+	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
+	}
+
+	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
+	}
+
+	detailReceiveReturns := []struct {
+		ID              string
+		ReceiveReturnID string
+		ProductID       string
+		ProductName     string
+		ProductCode     string
+		ShelveID        string
+		ShelveCode      string
+	}{}
+	err = json.Unmarshal([]byte(details), &detailReceiveReturns)
+	if err != nil {
+		return status.Errorf(codes.Internal, "unmarshal detailReceiveReturns: %v", err)
+	}
+
+	for _, detail := range detailReceiveReturns {
+		u.Pb.Details = append(u.Pb.Details, &inventories.ReceiveReturnDetail{
+			Id: detail.ID,
+			Product: &inventories.Product{
+				Id:   detail.ProductID,
+				Code: detail.ProductCode,
+				Name: detail.ProductName,
+			},
+			ReceiveReturnId: detail.ReceiveReturnID,
+			Shelve: &inventories.Shelve{
+				Id:   detail.ShelveID,
+				Code: detail.ShelveCode,
+			},
+		})
+	}
+
+	return nil
 }
 
 // Create ReceiveReturn
