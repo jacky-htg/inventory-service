@@ -26,7 +26,7 @@ type Receive struct {
 func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 	query := `
 		SELECT receives.id, receives.company_id, receives.branch_id, receives.branch_name, receives.purchase_id, receives.code, 
-		receives.date, receives.remark, receives.created_at, receives.created_by, receives.updated_at, receives.updated_by,
+		receives.receive_date, receives.remark, receives.created_at, receives.created_by, receives.updated_at, receives.updated_by,
 		json_agg(DISTINCT jsonb_build_object(
 			'id', receive_details.id,
 			'receive_id', receive_details.receive_id,
@@ -126,7 +126,7 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 // GetByCode func
 func (u *Receive) GetByCode(ctx context.Context, db *sql.DB) error {
 	query := `
-		SELECT id, branch_id, branch_name, purchase_id, code, date, remark, created_at, created_by, updated_at, updated_by 
+		SELECT id, branch_id, branch_name, purchase_id, code, receive_date, remark, created_at, created_by, updated_at, updated_by 
 		FROM receives WHERE receives.code = $1 AND receives.company_id = $2
 	`
 
@@ -201,7 +201,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	query := `
-		INSERT INTO receives (id, company_id, branch_id, branch_name, purchase_id, code, date, remark, created_at, created_by, updated_at, updated_by) 
+		INSERT INTO receives (id, company_id, branch_id, branch_name, purchase_id, code, receive_date, remark, created_at, created_by, updated_at, updated_by) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
 	stmt, err := tx.PrepareContext(ctx, query)
@@ -277,7 +277,7 @@ func (u *Receive) Update(ctx context.Context, tx *sql.Tx) error {
 	query := `
 		UPDATE receives SET
 		purchase_id = $1,
-		date = $2,
+		receive_date = $2,
 		remark = $3, 
 		updated_at = $4, 
 		updated_by= $5
@@ -328,7 +328,7 @@ func (u *Receive) Delete(ctx context.Context, db *sql.DB) error {
 // ListQuery builder
 func (u *Receive) ListQuery(ctx context.Context, db *sql.DB, in *inventories.ListReceiveRequest) (string, []interface{}, *inventories.ReceivePaginationResponse, error) {
 	var paginationResponse inventories.ReceivePaginationResponse
-	query := `SELECT id, company_id, branch_id, branch_name, purchase_id, code, date, remark, created_at, created_by, updated_at, updated_by FROM receives`
+	query := `SELECT id, company_id, branch_id, branch_name, purchase_id, code, receive_date, remark, created_at, created_by, updated_at, updated_by FROM receives`
 
 	where := []string{"company_id = $1"}
 	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
