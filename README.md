@@ -21,7 +21,7 @@ Inventory service using golang grpc and postgresql.
 - [X] Warehouses
 - [X] Shelves
 - [X] Good Receivings
-- [ ] Receiving Returns
+- [X] Receiving Returns
 - [X] Delivery Orders
 - [ ] Delivery Returns
 - [ ] Internal Warehouse Mutations
