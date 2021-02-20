@@ -16,7 +16,7 @@ message ReceiveReturn {
   string branch_name = 4;
   Receive receive = 5;
   string code = 6;
-  google.protobuf.Timestamp date = 7;
+  google.protobuf.Timestamp return_date = 7;
   string remark = 8;
   google.protobuf.Timestamp created_at = 9;
   string created_by = 10;
