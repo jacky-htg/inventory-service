@@ -5,7 +5,7 @@ option go_package = "pb/inventories;inventories";
 option java_package = "com.wiradata.erpapplication.inventories";
 option java_multiple_files = true;
 
-import "inventories/receive_message.proto";
+import "inventories/receive_return_message.proto";
 import "inventories/generic_message.proto";
 
 message ListReceiveReturnRequest {
