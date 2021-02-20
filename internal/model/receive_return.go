@@ -194,6 +194,50 @@ func (u *ReceiveReturn) Create(ctx context.Context, tx *sql.Tx) error {
 	return nil
 }
 
+// Update ReceiveReturn
+func (u *ReceiveReturn) Update(ctx context.Context, tx *sql.Tx) error {
+	now := time.Now().UTC()
+	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
+	dateReturn, err := ptypes.Timestamp(u.Pb.GetReturnDate())
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert receive return date: %v", err)
+	}
+
+	query := `
+		UPDATE receive_returns SET
+		receiving_id = $1,
+		return_date = $2,
+		remark = $3, 
+		updated_at = $4, 
+		updated_by= $5
+		WHERE id = $6
+	`
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare update receive return: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx,
+		u.Pb.GetReceive().GetId(),
+		dateReturn,
+		u.Pb.GetRemark(),
+		now,
+		u.Pb.GetUpdatedBy(),
+		u.Pb.GetId(),
+	)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Exec update receive return: %v", err)
+	}
+
+	u.Pb.UpdatedAt, err = ptypes.TimestampProto(now)
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert updated by: %v", err)
+	}
+
+	return nil
+}
+
 func (u *ReceiveReturn) getCode(ctx context.Context, tx *sql.Tx) (string, error) {
 	var count int
 	err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM receive_returns 
