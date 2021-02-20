@@ -129,9 +129,9 @@ var migrations = []darwin.Migration{
 	},
 	{
 		Version:     8,
-		Description: "Add Receiving",
+		Description: "Add Receives",
 		Script: `
-		CREATE TABLE receivings (
+		CREATE TABLE receives (
 			id char(36) NOT NULL PRIMARY KEY,
 			company_id	char(36) NOT NULL,
 			branch_id char(36) NOT NULL,
