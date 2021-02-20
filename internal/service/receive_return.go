@@ -133,3 +133,169 @@ func (u *ReceiveReturn) View(ctx context.Context, in *inventories.Id) (*inventor
 
 	return &receiveReturnModel.Pb, nil
 }
+
+// Update ReceiveReturn
+func (u *ReceiveReturn) Update(ctx context.Context, in *inventories.ReceiveReturn) (*inventories.ReceiveReturn, error) {
+	var receiveReturnModel model.ReceiveReturn
+	var err error
+
+	// TODO : if this month any closing stock, create transaction for thus month will be blocked
+
+	// basic validation
+	{
+		if len(in.GetId()) == 0 {
+			return &receiveReturnModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid id")
+		}
+		receiveReturnModel.Pb.Id = in.GetId()
+	}
+
+	// TODO : if any mutation_unit update will be blocked
+
+	ctx, err = getMetadata(ctx)
+	if err != nil {
+		return &receiveReturnModel.Pb, err
+	}
+
+	err = receiveReturnModel.Get(ctx, u.Db)
+	if err != nil {
+		return &receiveReturnModel.Pb, err
+	}
+
+	if len(in.GetReceive().GetId()) > 0 {
+		receiveReturnModel.Pb.Receive = in.GetReceive()
+	}
+
+	if in.GetReturnDate().IsValid() {
+		receiveReturnModel.Pb.ReturnDate = in.GetReturnDate()
+	}
+
+	tx, err := u.Db.BeginTx(ctx, nil)
+	if err != nil {
+		return &receiveReturnModel.Pb, status.Errorf(codes.Internal, "begin transaction: %v", err)
+	}
+
+	err = receiveReturnModel.Update(ctx, tx)
+	if err != nil {
+		tx.Rollback()
+		return &receiveReturnModel.Pb, err
+	}
+
+	var newDetails []*inventories.ReceiveReturnDetail
+	for _, detail := range in.GetDetails() {
+		// product validation
+		if len(detail.GetProduct().GetId()) == 0 {
+			tx.Rollback()
+			return &receiveReturnModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid product")
+		}
+
+		productModel := model.Product{}
+		productModel.Pb = inventories.Product{Id: detail.GetProduct().GetId()}
+		err = productModel.Get(ctx, u.Db)
+		if err != nil {
+			tx.Rollback()
+			return &receiveReturnModel.Pb, err
+		}
+
+		// shelve validation
+		if len(detail.GetShelve().GetId()) == 0 {
+			tx.Rollback()
+			return &receiveReturnModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid shelve")
+		}
+
+		shelveModel := model.Shelve{}
+		shelveModel.Pb = inventories.Shelve{Id: detail.GetShelve().GetId()}
+		err = shelveModel.Get(ctx, u.Db)
+		if err != nil {
+			tx.Rollback()
+			return &receiveReturnModel.Pb, err
+		}
+
+		if len(detail.GetId()) > 0 {
+			// operasi update
+			receiveReturnDetailModel := model.ReceiveReturnDetail{}
+			receiveReturnDetailModel.Pb.Id = detail.GetId()
+			receiveReturnDetailModel.Pb.ReceiveReturnId = receiveReturnModel.Pb.GetId()
+			err = receiveReturnDetailModel.Get(ctx, tx)
+			if err != nil {
+				tx.Rollback()
+				return &receiveReturnModel.Pb, err
+			}
+
+			receiveReturnDetailModel.Pb.Product = detail.GetProduct()
+			receiveReturnDetailModel.Pb.Shelve = detail.GetShelve()
+			receiveReturnDetailModel.PbReceiveReturn = inventories.ReceiveReturn{
+				Id:         receiveReturnModel.Pb.Id,
+				BranchId:   receiveReturnModel.Pb.BranchId,
+				BranchName: receiveReturnModel.Pb.BranchName,
+				Receive:    receiveReturnModel.Pb.GetReceive(),
+				Code:       receiveReturnModel.Pb.Code,
+				ReturnDate: receiveReturnModel.Pb.ReturnDate,
+				Remark:     receiveReturnModel.Pb.Remark,
+				CreatedAt:  receiveReturnModel.Pb.CreatedAt,
+				CreatedBy:  receiveReturnModel.Pb.CreatedBy,
+				UpdatedAt:  receiveReturnModel.Pb.UpdatedAt,
+				UpdatedBy:  receiveReturnModel.Pb.UpdatedBy,
+				Details:    receiveReturnModel.Pb.Details,
+			}
+			err = receiveReturnDetailModel.Update(ctx, tx)
+			if err != nil {
+				tx.Rollback()
+				return &receiveReturnModel.Pb, err
+			}
+
+			newDetails = append(newDetails, &receiveReturnDetailModel.Pb)
+			for index, data := range receiveReturnModel.Pb.GetDetails() {
+				if data.GetId() == detail.GetId() {
+					receiveReturnModel.Pb.Details = append(receiveReturnModel.Pb.Details[:index], receiveReturnModel.Pb.Details[index+1:]...)
+					break
+				}
+			}
+
+		} else {
+			// operasi insert
+			receiveReturnDetailModel := model.ReceiveReturnDetail{Pb: inventories.ReceiveReturnDetail{
+				ReceiveReturnId: receiveReturnModel.Pb.GetId(),
+				Product:         detail.GetProduct(),
+				Shelve:          detail.GetShelve(),
+			}}
+			receiveReturnDetailModel.PbReceiveReturn = inventories.ReceiveReturn{
+				Id:         receiveReturnModel.Pb.Id,
+				BranchId:   receiveReturnModel.Pb.BranchId,
+				BranchName: receiveReturnModel.Pb.BranchName,
+				Receive:    receiveReturnModel.Pb.GetReceive(),
+				Code:       receiveReturnModel.Pb.Code,
+				ReturnDate: receiveReturnModel.Pb.ReturnDate,
+				Remark:     receiveReturnModel.Pb.Remark,
+				CreatedAt:  receiveReturnModel.Pb.CreatedAt,
+				CreatedBy:  receiveReturnModel.Pb.CreatedBy,
+				UpdatedAt:  receiveReturnModel.Pb.UpdatedAt,
+				UpdatedBy:  receiveReturnModel.Pb.UpdatedBy,
+				Details:    receiveReturnModel.Pb.Details,
+			}
+			err = receiveReturnDetailModel.Create(ctx, tx)
+			if err != nil {
+				tx.Rollback()
+				return &receiveReturnModel.Pb, err
+			}
+
+			newDetails = append(newDetails, &receiveReturnDetailModel.Pb)
+		}
+	}
+
+	// delete existing detail
+	for _, data := range receiveReturnModel.Pb.GetDetails() {
+		receiveReturnDetailModel := model.ReceiveReturnDetail{Pb: inventories.ReceiveReturnDetail{
+			ReceiveReturnId: receiveReturnModel.Pb.GetId(),
+			Id:              data.GetId(),
+		}}
+		err = receiveReturnDetailModel.Delete(ctx, tx)
+		if err != nil {
+			tx.Rollback()
+			return &receiveReturnModel.Pb, err
+		}
+	}
+
+	tx.Commit()
+
+	return &receiveReturnModel.Pb, nil
+}
