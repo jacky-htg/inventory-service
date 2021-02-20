@@ -1,0 +1,26 @@
+syntax = "proto3";
+package wiradata.inventories;
+
+option go_package = "pb/inventories;inventories";
+option java_package = "com.wiradata.erpapplication.inventories";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+import "inventories/delivery_return_detail_message.proto";
+import "inventories/delivery_message.proto";
+
+message DeliveryReturn {
+  string id = 1;
+  string company_id = 2;
+  string branch_id = 3;
+  string branch_name = 4;
+  Delivery delivery = 5;
+  string code = 6;
+  google.protobuf.Timestamp return_date = 7;
+  string remark = 8;
+  google.protobuf.Timestamp created_at = 9;
+  string created_by = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string updated_by = 12;
+  repeated DeliveryReturnDetail details = 13;
+}
