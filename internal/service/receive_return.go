@@ -6,7 +6,9 @@ import (
 	"inventory-service/internal/model"
 	"inventory-service/pb/inventories"
 	"inventory-service/pb/users"
+	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -298,4 +300,61 @@ func (u *ReceiveReturn) Update(ctx context.Context, in *inventories.ReceiveRetur
 	tx.Commit()
 
 	return &receiveReturnModel.Pb, nil
+}
+
+// List ReceiveReturn
+func (u *ReceiveReturn) List(in *inventories.ListReceiveReturnRequest, stream inventories.ReceiveReturnService_ListServer) error {
+	ctx := stream.Context()
+	ctx, err := getMetadata(ctx)
+	if err != nil {
+		return err
+	}
+
+	var receiveReturnModel model.ReceiveReturn
+	query, paramQueries, paginationResponse, err := receiveReturnModel.ListQuery(ctx, u.Db, in)
+
+	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
+	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+	defer rows.Close()
+	paginationResponse.Pagination = in.GetPagination()
+
+	for rows.Next() {
+		err := contextError(ctx)
+		if err != nil {
+			return err
+		}
+
+		var pbReceiveReturn inventories.ReceiveReturn
+		var companyID string
+		var createdAt, updatedAt time.Time
+		err = rows.Scan(&pbReceiveReturn.Id, &companyID, &pbReceiveReturn.BranchId, &pbReceiveReturn.BranchName,
+			&pbReceiveReturn.Code, &pbReceiveReturn.ReturnDate, &pbReceiveReturn.Remark,
+			&createdAt, &pbReceiveReturn.CreatedBy, &updatedAt, &pbReceiveReturn.UpdatedBy)
+		if err != nil {
+			return status.Errorf(codes.Internal, "scan data: %v", err)
+		}
+
+		pbReceiveReturn.CreatedAt, err = ptypes.TimestampProto(createdAt)
+		if err != nil {
+			return status.Errorf(codes.Internal, "convert createdAt: %v", err)
+		}
+
+		pbReceiveReturn.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
+		if err != nil {
+			return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
+		}
+
+		res := &inventories.ListReceiveReturnResponse{
+			Pagination:    paginationResponse,
+			ReceiveReturn: &pbReceiveReturn,
+		}
+
+		err = stream.Send(res)
+		if err != nil {
+			return status.Errorf(codes.Unknown, "cannot send stream response: %v", err)
+		}
+	}
+	return nil
 }
