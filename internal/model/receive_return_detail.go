@@ -105,3 +105,45 @@ func (u *ReceiveReturnDetail) Create(ctx context.Context, tx *sql.Tx) error {
 
 	return nil
 }
+
+// Update ReceiveReturnDetail
+func (u *ReceiveReturnDetail) Update(ctx context.Context, tx *sql.Tx) error {
+	query := `
+		UPDATE receive_return_details SET
+		product_id = $1, 
+		shelve_id = $2
+		WHERE id = $3
+	`
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare update receive return detail: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx,
+		u.Pb.GetProduct().GetId(),
+		u.Pb.GetShelve().GetId(),
+		u.Pb.GetId(),
+	)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Exec update receive return detail: %v", err)
+	}
+
+	inventory := Inventory{
+		Barcode:       u.Pb.GetId(),
+		TransactionID: u.PbReceiveReturn.GetId(),
+	}
+	err = inventory.Get(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	inventory.ProductID = u.Pb.GetProduct().GetId()
+	inventory.ShelveID = u.Pb.GetShelve().GetId()
+	err = inventory.Update(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
