@@ -198,14 +198,14 @@ var migrations = []darwin.Migration{
 	},
 	{
 		Version:     12,
-		Description: "Add Receiving Return",
+		Description: "Add Receive Return",
 		Script: `
-		CREATE TABLE receiving_returns (
+		CREATE TABLE receive_returns (
 			id char(36) NOT NULL PRIMARY KEY,
 			company_id	char(36) NOT NULL,
 			branch_id char(36) NOT NULL,
 			branch_name varchar(100) NOT NULL,
-			receiving_id char(36) NOT NULL,
+			receive_id char(36) NOT NULL,
 			code	CHAR(13) NOT NULL,
 			return_date	DATE NOT NULL,
 			remark VARCHAR(255) NOT NULL,
@@ -218,11 +218,11 @@ var migrations = []darwin.Migration{
 	},
 	{
 		Version:     13,
-		Description: "Add Receiving Return Details",
+		Description: "Add Receive Return Details",
 		Script: `
-		CREATE TABLE receiving_return_details (
+		CREATE TABLE receive_return_details (
 			id char(36) NOT NULL PRIMARY KEY,
-			receiving_return_id	char(36) NOT NULL,
+			receive_return_id	char(36) NOT NULL,
 			product_id char(36) NOT NULL,
 			shelve_id char(36) NOT NULL,
 			CONSTRAINT fk_receiving_return_details_to_receiving_returns FOREIGN KEY (receiving_return_id) REFERENCES receiving_returns(id) ON DELETE CASCADE ON UPDATE CASCADE,
