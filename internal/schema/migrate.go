@@ -149,17 +149,17 @@ var migrations = []darwin.Migration{
 	},
 	{
 		Version:     9,
-		Description: "Add Receiving Details",
+		Description: "Add Receive Details",
 		Script: `
-		CREATE TABLE receiving_details (
+		CREATE TABLE receive_details (
 			id char(36) NOT NULL PRIMARY KEY,
-			receiving_id	char(36) NOT NULL,
+			receive_id	char(36) NOT NULL,
 			product_id char(36) NOT NULL,
 			shelve_id char(36) NOT NULL,
 			expired_date TIMESTAMP,
-			CONSTRAINT fk_receiving_details_to_receivings FOREIGN KEY (receiving_id) REFERENCES receivings(id) ON DELETE CASCADE ON UPDATE CASCADE,
-			CONSTRAINT fk_receiving_details_to_products FOREIGN KEY (product_id) REFERENCES products(id),
-			CONSTRAINT fk_receiving_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
+			CONSTRAINT fk_receive_details_to_receives FOREIGN KEY (receive_id) REFERENCES receives(id) ON DELETE CASCADE ON UPDATE CASCADE,
+			CONSTRAINT fk_receive_details_to_products FOREIGN KEY (product_id) REFERENCES products(id),
+			CONSTRAINT fk_receive_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
 		);`,
 	},
 	{
