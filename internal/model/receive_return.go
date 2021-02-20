@@ -24,7 +24,7 @@ type ReceiveReturn struct {
 // Get func
 func (u *ReceiveReturn) Get(ctx context.Context, db *sql.DB) error {
 	query := `
-		SELECT receive_returns.id, receive_returns.company_id, receive_returns.branch_id, receive_returns.branch_name, receive_returns.receiving_id, receive_returns.code, 
+		SELECT receive_returns.id, receive_returns.company_id, receive_returns.branch_id, receive_returns.branch_name, receive_returns.receive_id, receive_returns.code, 
 		receive_returns.return_date, receive_returns.remark, receive_returns.created_at, receive_returns.created_by, receive_returns.updated_at, receive_returns.updated_by,
 		json_agg(DISTINCT jsonb_build_object(
 			'id', receive_return_details.id,
@@ -206,7 +206,7 @@ func (u *ReceiveReturn) Update(ctx context.Context, tx *sql.Tx) error {
 
 	query := `
 		UPDATE receive_returns SET
-		receiving_id = $1,
+		receive_id = $1,
 		return_date = $2,
 		remark = $3, 
 		updated_at = $4, 
@@ -258,7 +258,7 @@ func (u *ReceiveReturn) Delete(ctx context.Context, db *sql.DB) error {
 // ListQuery builder
 func (u *ReceiveReturn) ListQuery(ctx context.Context, db *sql.DB, in *inventories.ListReceiveReturnRequest) (string, []interface{}, *inventories.ReceiveReturnPaginationResponse, error) {
 	var paginationResponse inventories.ReceiveReturnPaginationResponse
-	query := `SELECT id, company_id, branch_id, branch_name, receiving_id, code, return_date, remark, created_at, created_by, updated_at, updated_by FROM receive_returns`
+	query := `SELECT id, company_id, branch_id, branch_name, receive_id, code, return_date, remark, created_at, created_by, updated_at, updated_by FROM receive_returns`
 
 	where := []string{"company_id = $1"}
 	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
@@ -270,7 +270,7 @@ func (u *ReceiveReturn) ListQuery(ctx context.Context, db *sql.DB, in *inventori
 
 	if len(in.GetReceiveId()) > 0 {
 		paramQueries = append(paramQueries, in.GetReceiveId())
-		where = append(where, fmt.Sprintf(`receiving_id = $%d`, len(paramQueries)))
+		where = append(where, fmt.Sprintf(`receive_id = $%d`, len(paramQueries)))
 	}
 
 	if len(in.GetPagination().GetSearch()) > 0 {
