@@ -18,6 +18,47 @@ type ReceiveReturnDetail struct {
 	PbReceiveReturn inventories.ReceiveReturn
 }
 
+// Get func
+func (u *ReceiveReturnDetail) Get(ctx context.Context, tx *sql.Tx) error {
+	query := `
+		SELECT receive_return_details.id, receive_returns.company_id, receive_return_details.receive_return_id, receive_return_details.product_id, 
+		receive_return_details.shelve_id 
+		FROM receive_return_details 
+		JOIN receive_returns ON receive_return_details.receive_return_id = receive_returns.id
+		WHERE receive_return_details.id = $1 AND receive_return_details.receive_return_id = $2
+	`
+
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare statement Get receive return detail: %v", err)
+	}
+	defer stmt.Close()
+
+	var pbProduct inventories.Product
+	var pbShelve inventories.Shelve
+	var companyID string
+	err = stmt.QueryRowContext(ctx, u.Pb.GetId(), u.Pb.GetReceiveReturnId()).Scan(
+		&u.Pb.Id, &companyID, &u.Pb.ReceiveReturnId, &pbProduct.Id, &pbShelve.Id,
+	)
+
+	if err == sql.ErrNoRows {
+		return status.Errorf(codes.NotFound, "Query Raw get by code receive return detail: %v", err)
+	}
+
+	if err != nil {
+		return status.Errorf(codes.Internal, "Query Raw get by code receive return detail: %v", err)
+	}
+
+	if companyID != ctx.Value(app.Ctx("companyID")).(string) {
+		return status.Error(codes.Unauthenticated, "its not your company")
+	}
+
+	u.Pb.Product = &pbProduct
+	u.Pb.Shelve = &pbShelve
+
+	return nil
+}
+
 // Create ReceiveReturnDetail
 func (u *ReceiveReturnDetail) Create(ctx context.Context, tx *sql.Tx) error {
 	u.Pb.Id = uuid.New().String()
