@@ -147,3 +147,28 @@ func (u *ReceiveReturnDetail) Update(ctx context.Context, tx *sql.Tx) error {
 
 	return nil
 }
+
+// Delete ReceiveReturnDetail
+func (u *ReceiveReturnDetail) Delete(ctx context.Context, tx *sql.Tx) error {
+	stmt, err := tx.PrepareContext(ctx, `DELETE FROM receive_return_details WHERE id = $1 AND receive_return_id = $2`)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare delete receive return detail: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, u.Pb.GetId(), u.Pb.GetReceiveReturnId())
+	if err != nil {
+		return status.Errorf(codes.Internal, "Exec delete receive return detail: %v", err)
+	}
+
+	inventory := Inventory{
+		Barcode:       u.Pb.GetId(),
+		TransactionID: u.Pb.GetReceiveReturnId(),
+	}
+	err = inventory.Get(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	return inventory.Delete(ctx, tx)
+}
