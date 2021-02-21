@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"inventory-service/internal/pkg/app"
+	"inventory-service/internal/pkg/util"
 	"inventory-service/pb/inventories"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -107,6 +109,86 @@ func (u *DeliveryReturn) Get(ctx context.Context, db *sql.DB) error {
 				Code: detail.ShelveCode,
 			},
 		})
+	}
+
+	return nil
+}
+
+// Create DeliveryReturn
+func (u *DeliveryReturn) Create(ctx context.Context, tx *sql.Tx) error {
+	u.Pb.Id = uuid.New().String()
+	now := time.Now().UTC()
+	u.Pb.CreatedBy = ctx.Value(app.Ctx("userID")).(string)
+	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
+	dateReturn, err := ptypes.Timestamp(u.Pb.GetReturnDate())
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert Date: %v", err)
+	}
+
+	u.Pb.Code, err = util.GetCode(ctx, tx, "delivery_returns", "DR")
+	if err != nil {
+		return err
+	}
+
+	query := `
+		INSERT INTO delivery_returns (id, company_id, branch_id, branch_name, delivery_id, code, return_date, remark, created_at, created_by, updated_at, updated_by) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+	`
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare insert delivery return: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx,
+		u.Pb.GetId(),
+		ctx.Value(app.Ctx("companyID")).(string),
+		u.Pb.GetBranchId(),
+		u.Pb.GetBranchName(),
+		u.Pb.GetDelivery().GetId(),
+		u.Pb.GetCode(),
+		dateReturn,
+		u.Pb.GetRemark(),
+		now,
+		u.Pb.GetCreatedBy(),
+		now,
+		u.Pb.GetUpdatedBy(),
+	)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Exec insert delivery return: %v", err)
+	}
+
+	u.Pb.CreatedAt, err = ptypes.TimestampProto(now)
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert created by: %v", err)
+	}
+
+	u.Pb.UpdatedAt = u.Pb.CreatedAt
+
+	for _, detail := range u.Pb.GetDetails() {
+		deliveryReturnDetailModel := DeliveryReturnDetail{}
+		deliveryReturnDetailModel.Pb = inventories.DeliveryReturnDetail{
+			DeliveryReturnId: u.Pb.GetId(),
+			Product:          detail.GetProduct(),
+			Shelve:           detail.GetShelve(),
+		}
+		deliveryReturnDetailModel.PbDeliveryReturn = inventories.DeliveryReturn{
+			Id:         u.Pb.Id,
+			BranchId:   u.Pb.BranchId,
+			BranchName: u.Pb.BranchName,
+			Delivery:   u.Pb.Delivery,
+			Code:       u.Pb.Code,
+			ReturnDate: u.Pb.ReturnDate,
+			Remark:     u.Pb.Remark,
+			CreatedAt:  u.Pb.CreatedAt,
+			CreatedBy:  u.Pb.CreatedBy,
+			UpdatedAt:  u.Pb.UpdatedAt,
+			UpdatedBy:  u.Pb.UpdatedBy,
+		}
+		err = deliveryReturnDetailModel.Create(ctx, tx)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
