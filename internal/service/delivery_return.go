@@ -107,3 +107,29 @@ func (u *DeliveryReturn) Create(ctx context.Context, in *inventories.DeliveryRet
 
 	return &deliveryReturnModel.Pb, nil
 }
+
+// View DeliveryReturn
+func (u *DeliveryReturn) View(ctx context.Context, in *inventories.Id) (*inventories.DeliveryReturn, error) {
+	var deliveryReturnModel model.DeliveryReturn
+	var err error
+
+	// basic validation
+	{
+		if len(in.GetId()) == 0 {
+			return &deliveryReturnModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid id")
+		}
+		deliveryReturnModel.Pb.Id = in.GetId()
+	}
+
+	ctx, err = getMetadata(ctx)
+	if err != nil {
+		return &deliveryReturnModel.Pb, err
+	}
+
+	err = deliveryReturnModel.Get(ctx, u.Db)
+	if err != nil {
+		return &deliveryReturnModel.Pb, err
+	}
+
+	return &deliveryReturnModel.Pb, nil
+}
