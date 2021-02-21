@@ -237,3 +237,19 @@ func (u *DeliveryReturn) Update(ctx context.Context, tx *sql.Tx) error {
 
 	return nil
 }
+
+// Delete DeliveryReturn
+func (u *DeliveryReturn) Delete(ctx context.Context, db *sql.DB) error {
+	stmt, err := db.PrepareContext(ctx, `DELETE FROM receive_returns WHERE id = $1`)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare delete receive return: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, u.Pb.GetId())
+	if err != nil {
+		return status.Errorf(codes.Internal, "Exec delete receive return: %v", err)
+	}
+
+	return nil
+}
