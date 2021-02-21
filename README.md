@@ -23,7 +23,7 @@ Inventory service using golang grpc and postgresql.
 - [X] Good Receivings
 - [X] Receiving Returns
 - [X] Delivery Orders
-- [ ] Delivery Returns
+- [X] Delivery Returns
 - [ ] Internal Warehouse Mutations
 - [ ] External Warehouse Mutations
 - [ ] Stock Opname
