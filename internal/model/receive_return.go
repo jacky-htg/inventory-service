@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"inventory-service/internal/pkg/app"
+	"inventory-service/internal/pkg/util"
 	"inventory-service/pb/inventories"
 	"strings"
 	"time"
@@ -126,7 +127,7 @@ func (u *ReceiveReturn) Create(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "convert Date: %v", err)
 	}
 
-	u.Pb.Code, err = u.getCode(ctx, tx)
+	u.Pb.Code, err = util.GetCode(ctx, tx, "receive_returns", "RR")
 	if err != nil {
 		return err
 	}
@@ -312,20 +313,4 @@ func (u *ReceiveReturn) ListQuery(ctx context.Context, db *sql.DB, in *inventori
 	}
 
 	return query, paramQueries, &paginationResponse, nil
-}
-
-func (u *ReceiveReturn) getCode(ctx context.Context, tx *sql.Tx) (string, error) {
-	var count int
-	err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM receive_returns 
-			WHERE company_id = $1 AND to_char(created_at, 'YYYY-mm') = to_char(now(), 'YYYY-mm')`,
-		ctx.Value(app.Ctx("companyID")).(string)).Scan(&count)
-
-	if err != nil {
-		return "", status.Error(codes.Internal, err.Error())
-	}
-
-	return fmt.Sprintf("RR%d%d%d",
-		time.Now().UTC().Year(),
-		int(time.Now().UTC().Month()),
-		(count + 1)), nil
 }
