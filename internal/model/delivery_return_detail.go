@@ -147,3 +147,28 @@ func (u *DeliveryReturnDetail) Update(ctx context.Context, tx *sql.Tx) error {
 
 	return nil
 }
+
+// Delete DeliveryReturnDetail
+func (u *DeliveryReturnDetail) Delete(ctx context.Context, tx *sql.Tx) error {
+	stmt, err := tx.PrepareContext(ctx, `DELETE FROM delivery_return_details WHERE id = $1 AND delivery_return_id = $2`)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare delete delivery return detail: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, u.Pb.GetId(), u.Pb.GetDeliveryReturnId())
+	if err != nil {
+		return status.Errorf(codes.Internal, "Exec delete delivery return detail: %v", err)
+	}
+
+	inventory := Inventory{
+		Barcode:       u.Pb.GetId(),
+		TransactionID: u.Pb.GetDeliveryReturnId(),
+	}
+	err = inventory.Get(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	return inventory.Delete(ctx, tx)
+}
