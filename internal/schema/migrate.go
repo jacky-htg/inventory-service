@@ -284,7 +284,7 @@ var migrations = []darwin.Migration{
 		Script: `
 		CREATE TABLE saldo_stock_details (
 			id   bigserial PRIMARY KEY,
-			saldo_stock_id	biginteger NOT NULL,
+			saldo_stock_id	bigint NOT NULL,
 			branch_id char(36) NOT NULL,
 			code CHAR(36) NOT NULL,
 			UNIQUE(code, saldo_stock_id),
