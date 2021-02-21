@@ -278,6 +278,19 @@ var migrations = []darwin.Migration{
 		CONSTRAINT fk_saldo_stocks_to_products FOREIGN KEY (product_id) REFERENCES products(id)
 	);`,
 	},
+	{
+		Version:     17,
+		Description: "Add Saldo Stock Details",
+		Script: `
+		CREATE TABLE saldo_stock_details (
+			id   bigserial PRIMARY KEY,
+			saldo_stock_id	biginteger NOT NULL,
+			branch_id char(36) NOT NULL,
+			code CHAR(36) NOT NULL,
+			UNIQUE(code, saldo_stock_id),
+			CONSTRAINT fk_saldo_stock_details_to_saldo_stocks FOREIGN KEY (saldo_stock_id) REFERENCES saldo_stocks(id) ON DELETE CASCADE ON UPDATE CASCADE
+		);`,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
