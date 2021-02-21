@@ -264,6 +264,20 @@ var migrations = []darwin.Migration{
 			CONSTRAINT fk_delivery_return_details_to_shelves FOREIGN KEY (shelve_id) REFERENCES shelves(id)
 		);`,
 	},
+	{
+		Version:     16,
+		Description: "Add saldo stocks",
+		Script: `
+	CREATE TABLE saldo_stocks (
+		id bigserial PRIMARY KEY,
+		company_id	char(36) NOT NULL,
+		product_id char(36) NOT NULL,
+		qty integer NOT NULL,
+		year integer NOT NULL,
+		month smallint NOT NULL,
+		CONSTRAINT fk_saldo_stocks_to_products FOREIGN KEY (product_id) REFERENCES products(id)
+	);`,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
