@@ -52,4 +52,12 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 		BranchClient: users.NewBranchServiceClient(userConn),
 	}
 	inventories.RegisterReceiveReturnServiceServer(grpcServer, &receiveReturnServer)
+
+	deliveryReturnServer := service.DeliveryReturn{
+		Db:           db,
+		UserClient:   users.NewUserServiceClient((userConn)),
+		RegionClient: users.NewRegionServiceClient(userConn),
+		BranchClient: users.NewBranchServiceClient(userConn),
+	}
+	inventories.RegisterDeliveryReturnServiceServer(grpcServer, &deliveryReturnServer)
 }
