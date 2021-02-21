@@ -370,6 +370,75 @@ var migrations = []darwin.Migration{
 		end;
 		$$ language plpgsql `,
 	},
+	{
+		Version:     19,
+		Description: "Add Closing Stock",
+		Script: `
+		create or replace procedure closing_stocks(
+			companyID char, 
+			curYear int, 
+			curMonth int
+		) 
+		as $$
+		declare 
+				nextYear int;
+				nextMonth int;
+		begin	
+	
+			IF curYear = 0 THEN
+				select date_part('year', CURRENT_DATE) into curYear;
+			END IF;
+		
+			IF curMonth = 0 THEN 
+				select date_part('month', CURRENT_DATE) into curMonth;
+			END IF;
+			
+			select curYear into nextYear;
+			select curMonth + 1 into nextMonth;
+			
+			IF curMonth = 12 THEN 
+				select curYear+1 into nextYear;
+				select 1 into nextMonth;
+			END IF;
+	
+			INSERT INTO saldo_stocks (company_id, product_id, qty, year, month)
+			SELECT companyID, saldo.id AS product_id, 
+				case 
+					when transaction.qty IS null then saldo.qty
+					else saldo.qty+transaction.qty
+				end 
+				AS qty, curYear AS year, curMonth AS month 
+			FROM (
+				SELECT products.id, 
+					case 
+						when saldo_stocks.qty IS null then 0
+						else saldo_stocks.qty
+					end 
+					AS qty
+				FROM products
+				LEFT JOIN saldo_stocks ON products.id = saldo_stocks.product_id AND products.company_id=saldo_stocks.company_id AND saldo_stocks.year=curYear AND saldo_stocks.month=curMonth
+				WHERE products.company_id=companyID
+			) AS saldo
+			LEFT JOIN (
+				SELECT tr.product_id, SUM(tr.qty) AS qty
+				FROM (
+					select inventories.product_id, 
+						case 
+							when inventories.in_out then 1
+							else -1
+						end 
+						as qty   
+					from inventories
+					WHERE date_part('month', inventories.transaction_date)=curMonth AND date_part('year', inventories.transaction_date)=curYear AND inventories.company_id=companyID
+				) as tr
+				GROUP BY tr.product_id
+			) as transaction ON saldo.id=transaction.product_id;
+
+			call closing_stock_details(companyID, curYear, curMonth);
+			
+		end;
+		$$ language plpgsql `,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
