@@ -6,6 +6,8 @@ import (
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -53,6 +55,53 @@ func (u *DeliveryReturnDetail) Get(ctx context.Context, tx *sql.Tx) error {
 
 	u.Pb.Product = &pbProduct
 	u.Pb.Shelve = &pbShelve
+
+	return nil
+}
+
+// Create DeliveryReturnDetail
+func (u *DeliveryReturnDetail) Create(ctx context.Context, tx *sql.Tx) error {
+	u.Pb.Id = uuid.New().String()
+	query := `
+		INSERT INTO delivery_return_details (id, delivery_return_id, product_id, shelve_id) 
+		VALUES ($1, $2, $3, $4)
+	`
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare insert delivery return detail: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx,
+		u.Pb.GetId(),
+		u.Pb.GetDeliveryReturnId(),
+		u.Pb.GetProduct().GetId(),
+		u.Pb.GetShelve().GetId(),
+	)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Exec insert delivery return detail: %v", err)
+	}
+
+	transactionDate, err := ptypes.Timestamp(u.PbDeliveryReturn.GetReturnDate())
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert transactiondate inventory: %v", err)
+	}
+	inventory := Inventory{
+		Barcode:         u.Pb.GetId(),
+		BranchID:        u.PbDeliveryReturn.GetBranchId(),
+		CompanyID:       ctx.Value(app.Ctx("companyID")).(string),
+		IsIn:            true,
+		ProductID:       u.Pb.GetProduct().GetId(),
+		ShelveID:        u.Pb.GetShelve().GetId(),
+		TransactionDate: transactionDate,
+		TransactionCode: u.PbDeliveryReturn.GetCode(),
+		TransactionID:   u.PbDeliveryReturn.GetId(),
+		Type:            "DR",
+	}
+	err = inventory.Create(ctx, tx)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
