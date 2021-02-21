@@ -1,0 +1,34 @@
+syntax = "proto3";
+package wiradata.inventories;
+
+option go_package = "pb/inventories;inventories";
+option java_package = "com.wiradata.erpapplication.inventories";
+option java_multiple_files = true;
+
+import "inventories/delivery_return_message.proto";
+import "inventories/generic_message.proto";
+
+message ListDeliveryReturnRequest {
+  Pagination pagination = 1;
+  string branch_id = 2;
+  string delivery_id = 3;
+}
+
+message DeliveryReturnPaginationResponse {
+  Pagination pagination = 1;
+  string branch_id = 2;
+  string delivery_id = 3;
+  uint32 count = 4;
+}
+
+message ListDeliveryReturnResponse {
+  DeliveryReturnPaginationResponse pagination = 1;
+  DeliveryReturn DeliveryReturn = 2; 
+}
+
+service DeliveryReturnService {
+  rpc Create(DeliveryReturn) returns (DeliveryReturn) {}
+  rpc Update(DeliveryReturn) returns (DeliveryReturn) {}
+  rpc View(Id) returns (DeliveryReturn) {}
+  rpc List(ListDeliveryReturnRequest) returns (stream ListDeliveryReturnResponse) {}
+}
