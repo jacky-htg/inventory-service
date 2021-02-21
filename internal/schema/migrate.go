@@ -291,6 +291,85 @@ var migrations = []darwin.Migration{
 			CONSTRAINT fk_saldo_stock_details_to_saldo_stocks FOREIGN KEY (saldo_stock_id) REFERENCES saldo_stocks(id) ON DELETE CASCADE ON UPDATE CASCADE
 		);`,
 	},
+	{
+		Version:     18,
+		Description: "Add Closing Stock Details",
+		Script: `
+		create or replace procedure closing_stock_details(
+			companyID char, 
+			curYear int, 
+			curMonth int
+		) 
+		as $$
+		declare 
+				nextYear int;
+				nextMonth int;
+		begin	
+			
+			IF curYear = 0 THEN
+				select date_part('year', CURRENT_DATE) into curYear;
+			END IF;
+		
+			IF curMonth = 0 THEN 
+				select date_part('month', CURRENT_DATE) into curMonth;
+			END IF;
+			
+			select curYear into nextYear;
+			select curMonth + 1 into nextMonth;
+			
+			IF curMonth = 12 THEN 
+				select curYear+1 into nextYear;
+				select 1 into nextMonth;
+			END IF;
+		
+			INSERT INTO saldo_stock_details (saldo_stock_id, branch_id, code)
+			SELECT 
+				saldo_stocks.id saldo_stock_id,
+				COALESCE(inventories.branch_id, group_inventories.branch_id) branch_id,
+				COALESCE(inventories.barcode, group_inventories.barcode) code
+			FROM (
+				SELECT 
+					MAX(union_inventories.id) id, 
+					MAX(union_inventories.company_id) company_id, 
+					MAX(union_inventories.branch_id) branch_id, 
+					MAX(union_inventories.product_id) product_id, 
+					MAX(union_inventories.barcode) barcode, 
+					SUM(union_inventories.qty) qty
+				FROM (
+					(SELECT 
+						'0' id,
+						saldo_stocks.company_id, 
+						saldo_stock_details.branch_id,
+						saldo_stocks.product_id, 
+						saldo_stock_details.code barcode,
+						1 qty  
+					FROM saldo_stocks
+					JOIN saldo_stock_details ON saldo_stocks.id = saldo_stock_details.saldo_stock_id
+					WHERE saldo_stocks.year = curYear AND saldo_stocks.month = curMonth and saldo_stocks.company_id = companyID)
+					union all
+					(SELECT 
+						inventories.id,
+						inventories.company_id,
+						inventories.branch_id,
+						inventories.product_id,
+						inventories.barcode,
+						case 
+							when inventories.in_out then 1
+							else -1
+						end 
+						as qty
+					FROM inventories
+					where date_part('month', inventories.transaction_date)=curMonth and date_part('year', inventories.transaction_date)=curYear and inventories.company_id = companyID)
+				) union_inventories
+				GROUP BY union_inventories.company_id, union_inventories.product_id, union_inventories.barcode
+			) group_inventories
+			left join inventories ON group_inventories.id = inventories.id and inventories.company_id = companyID
+			join saldo_stocks ON COALESCE(inventories.company_id, group_inventories.company_id)=saldo_stocks.company_id and COALESCE(inventories.product_id, group_inventories.product_id)=saldo_stocks.product_id and saldo_stocks.year = nextYear and saldo_stocks.month = nextMonth and saldo_stocks.company_id = companyID
+			WHERE group_inventories.qty > 0;
+			
+		end;
+		$$ language plpgsql `,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
