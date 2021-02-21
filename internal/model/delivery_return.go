@@ -193,3 +193,47 @@ func (u *DeliveryReturn) Create(ctx context.Context, tx *sql.Tx) error {
 
 	return nil
 }
+
+// Update DeliveryReturn
+func (u *DeliveryReturn) Update(ctx context.Context, tx *sql.Tx) error {
+	now := time.Now().UTC()
+	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
+	dateReturn, err := ptypes.Timestamp(u.Pb.GetReturnDate())
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert delivery return date: %v", err)
+	}
+
+	query := `
+		UPDATE delivery_returns SET
+		delivery_id = $1,
+		return_date = $2,
+		remark = $3, 
+		updated_at = $4, 
+		updated_by= $5
+		WHERE id = $6
+	`
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Prepare update delivery return: %v", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx,
+		u.Pb.GetDelivery().GetId(),
+		dateReturn,
+		u.Pb.GetRemark(),
+		now,
+		u.Pb.GetUpdatedBy(),
+		u.Pb.GetId(),
+	)
+	if err != nil {
+		return status.Errorf(codes.Internal, "Exec update delivery return: %v", err)
+	}
+
+	u.Pb.UpdatedAt, err = ptypes.TimestampProto(now)
+	if err != nil {
+		return status.Errorf(codes.Internal, "convert updated by: %v", err)
+	}
+
+	return nil
+}
