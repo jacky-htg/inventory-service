@@ -29,7 +29,7 @@ Inventory service using golang grpc and postgresql.
 - [ ] Stock Opname
 - [ ] Stock Information
 - [ ] Product Track History
-- [ ] Closing Stocks
+- [X] Closing Stocks
 
 ## How To Contribute
 - Give star or clone and fork the repository
