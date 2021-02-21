@@ -63,12 +63,12 @@ func (u *ReceiveReturnDetail) Get(ctx context.Context, tx *sql.Tx) error {
 func (u *ReceiveReturnDetail) Create(ctx context.Context, tx *sql.Tx) error {
 	u.Pb.Id = uuid.New().String()
 	query := `
-		INSERT INTO receive_return_details (id, receive_id, product_id, shelve_id) 
+		INSERT INTO receive_return_details (id, receive_return_id, product_id, shelve_id) 
 		VALUES ($1, $2, $3, $4)
 	`
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Prepare insert receive detail: %v", err)
+		return status.Errorf(codes.Internal, "Prepare insert receive return detail: %v", err)
 	}
 	defer stmt.Close()
 
@@ -79,7 +79,7 @@ func (u *ReceiveReturnDetail) Create(ctx context.Context, tx *sql.Tx) error {
 		u.Pb.GetShelve().GetId(),
 	)
 	if err != nil {
-		return status.Errorf(codes.Internal, "Exec insert receive detail: %v", err)
+		return status.Errorf(codes.Internal, "Exec insert receive return detail: %v", err)
 	}
 
 	transactionDate, err := ptypes.Timestamp(u.PbReceiveReturn.GetReturnDate())
