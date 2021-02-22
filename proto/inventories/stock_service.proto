@@ -28,7 +28,7 @@ message StockInfo {
 }
 
 message StockList {
-  repeated StockInfo stock_info= 1;
+  repeated StockInfo stock_infos= 1;
 }
 
 service StockService {
