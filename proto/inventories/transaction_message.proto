@@ -1,0 +1,28 @@
+syntax = "proto3";
+package wiradata.inventories;
+
+option go_package = "pb/inventories;inventories";
+option java_package = "com.wiradata.erpapplication.inventories";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+
+message Transaction {
+  string branch_id = 1;
+  string branch_name = 2;
+  string warehouse_id = 3;
+  string warehouse_name = 4;
+  string shelve_id = 5;
+  string shelve_code = 6;
+  string product_id = 7;
+  string barcode = 8;
+  string transaction_code = 9;
+  string transaction_type = 10;
+  string transaction_date = 11;
+  bool is_in = 12;
+}
+
+message Transactions {
+  repeated Transaction transactions = 1;
+}
+
