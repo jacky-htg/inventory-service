@@ -41,3 +41,28 @@ func (u *Stock) Closing(ctx context.Context, in *inventories.ClosingStockRequest
 
 	return &inventories.MyBoolean{Boolean: true}, err
 }
+
+// List Stock
+func (u *Stock) List(ctx context.Context, in *inventories.StockListInput) (*inventories.StockList, error) {
+	var stockModel model.Stock
+	var err error
+
+	ctx, err = getMetadata(ctx)
+	if err != nil {
+		return &inventories.StockList{}, err
+	}
+
+	if len(in.GetBranchId()) > 0 {
+		err = isYourBranch(ctx, u.UserClient, u.RegionClient, u.BranchClient, in.GetBranchId())
+		if err != nil {
+			return &inventories.StockList{}, err
+		}
+	}
+
+	err = stockModel.List(ctx, u.Db)
+	if err != nil {
+		return &inventories.StockList{}, err
+	}
+
+	return &stockModel.StockList, nil
+}
