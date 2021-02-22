@@ -5,7 +5,6 @@ option go_package = "pb/inventories;inventories";
 option java_package = "com.wiradata.erpapplication.inventories";
 option java_multiple_files = true;
 
-import "google/protobuf/timestamp.proto";
 import "inventories/warehouse_message.proto";
 
 message Shelve {
@@ -13,8 +12,8 @@ message Shelve {
   Warehouse warehouse = 2;
   string code = 3;
   string capacity = 4;
-  google.protobuf.Timestamp created_at = 5;
+  string created_at = 5;
   string created_by = 6;
-  google.protobuf.Timestamp updated_at = 7;
+  string updated_at = 7;
   string updated_by = 8;
 }
