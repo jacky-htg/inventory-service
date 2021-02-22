@@ -18,7 +18,8 @@ import (
 
 // Product struct
 type Product struct {
-	Pb inventories.Product
+	Pb             inventories.Product
+	PbTransactions inventories.Transactions
 }
 
 // Get func
@@ -303,4 +304,49 @@ func (u *Product) ListQuery(ctx context.Context, db *sql.DB, in *inventories.Lis
 	}
 
 	return query, paramQueries, &paginationResponse, nil
+}
+
+// Track Product History
+func (u *Product) Track(ctx context.Context, db *sql.DB) error {
+	query := `
+		SELECT
+			inventories.branch_id, warehouses.branch_name, shelves.warehouse_id, warehouses.name, inventories.shelve_id, 
+			shelves.code, inventories.product_id, inventories.barcode, inventories.transaction_code,
+			inventories.type, inventories.transaction_date, inventories.in_out
+		FROM inventories
+		JOIN shelves ON inventories.shelve_id = shelves.id
+		JOIN warehouses ON shelves.warehouse_id = warehouses.id 
+	`
+	where := []string{"inventories.company_id = $1", "inventories.product_id = $2"}
+	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string), u.Pb.Id}
+
+	if len(where) > 0 {
+		query += ` WHERE ` + strings.Join(where, " AND ")
+	}
+	rows, err := db.QueryContext(ctx, query, paramQueries...)
+	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var pbTransaction inventories.Transaction
+		err = rows.Scan(
+			&pbTransaction.BranchId, &pbTransaction.BranchName, &pbTransaction.WarehouseId, &pbTransaction.WarehouseName, &pbTransaction.ShelveId,
+			&pbTransaction.ShelveCode, &pbTransaction.ProductId, *&pbTransaction.Barcode, &pbTransaction.TransactionCode,
+			&pbTransaction.TransactionType, &pbTransaction.TransactionDate, &pbTransaction.IsIn,
+		)
+
+		if err != nil {
+			return status.Errorf(codes.Internal, "scan data: %v", err)
+		}
+
+		u.PbTransactions.Transactions = append(u.PbTransactions.Transactions, &pbTransaction)
+	}
+
+	if rows.Err() != nil {
+		return status.Errorf(codes.Internal, "rows error: %v", err)
+	}
+
+	return nil
 }
