@@ -24,6 +24,9 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 	productServer := service.Product{Db: db}
 	inventories.RegisterProductServiceServer(grpcServer, &productServer)
 
+	shelveServer := service.Shelve{Db: db}
+	inventories.RegisterShelveServiceServer(grpcServer, &shelveServer)
+
 	warehouseServer := service.Warehouse{
 		Db:           db,
 		UserClient:   users.NewUserServiceClient(userConn),
