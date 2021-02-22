@@ -280,3 +280,8 @@ func (u *Product) List(in *inventories.ListProductRequest, stream inventories.Pr
 	}
 	return nil
 }
+
+// Track product history
+func (u *Product) Track(ctx context.Context, in *inventories.Product) (*inventories.Transactions, error) {
+	return &inventories.Transactions{}, nil
+}
