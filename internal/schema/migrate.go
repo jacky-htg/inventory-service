@@ -439,6 +439,40 @@ var migrations = []darwin.Migration{
 		end;
 		$$ language plpgsql `,
 	},
+	{
+		Version:     20,
+		Description: "Add Stock Func",
+		Script: `
+		CREATE or replace FUNCTION stock (companyID character , productID character) RETURNS int
+		as $$
+		declare 
+			stock int;
+		begin
+			
+			select SUM(union_stocks.qty) into stock
+			from (
+				(select saldo_stocks.company_id, saldo_stocks.product_id, saldo_stocks.qty
+				FROM saldo_stocks
+				WHERE saldo_stocks.year=date_part('year', CURRENT_DATE) and saldo_stocks.month=date_part('month', CURRENT_DATE) and saldo_stocks.company_id = companyID and saldo_stocks.product_id = productID)
+				union all
+				(select inventories.company_id, inventories.product_id, 
+					case 
+						when inventories.in_out then 1
+						else -1
+					end
+					as qty 
+				from inventories
+				where date_part('month', inventories.transaction_date)=date_part('month', CURRENT_DATE) and date_part('year', inventories.transaction_date)=date_part('year', CURRENT_DATE) and inventories.company_id = companyID and product_id = productID )
+			) union_stocks
+			where union_stocks.company_id = companyID and union_stocks.product_id = productID
+			group by union_stocks.company_id, union_stocks.product_id;
+			
+			RETURN stock;
+
+		END;
+		$$ language plpgsql
+		`,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
