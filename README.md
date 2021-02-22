@@ -27,7 +27,7 @@ Inventory service using golang grpc and postgresql.
 - [ ] Internal Warehouse Mutations
 - [ ] External Warehouse Mutations
 - [ ] Stock Opname
-- [ ] Stock Information
+- [X] Stock Information
 - [ ] Product Track History
 - [X] Closing Stocks
 
