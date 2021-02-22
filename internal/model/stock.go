@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -93,16 +92,8 @@ func (u *Stock) List(ctx context.Context, db *sql.DB) error {
 		pbProduct.Brand = &pbBrand
 		pbProduct.ProductCategory = &pbProductCategory
 
-		pbProduct.CreatedAt, err = ptypes.TimestampProto(createdAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-		}
-
-		pbProduct.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-		}
-
+		pbProduct.CreatedAt = createdAt.String()
+		pbProduct.UpdatedAt = updatedAt.String()
 		pbStockInfo.Product = &pbProduct
 		pbStockInfo.Qty = stock
 		u.StockList.StockInfos = append(u.StockList.StockInfos, &pbStockInfo)
@@ -177,15 +168,8 @@ func (u *Stock) Info(ctx context.Context, db *sql.DB) error {
 	pbProduct.Brand = &pbBrand
 	pbProduct.ProductCategory = &pbProductCategory
 
-	pbProduct.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	pbProduct.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	pbProduct.CreatedAt = createdAt.String()
+	pbProduct.UpdatedAt = updatedAt.String()
 
 	u.StockInfo = inventories.StockInfo{
 		Product: &pbProduct,

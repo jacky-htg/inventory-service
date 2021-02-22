@@ -9,7 +9,6 @@ import (
 	"inventory-service/internal/model"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -39,7 +38,7 @@ func (u *Delivery) Create(ctx context.Context, in *inventories.Delivery) (*inven
 			return &deliveryModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid sales order")
 		}
 
-		if in.GetDeliveryDate().IsValid() {
+		if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetDeliveryDate()); err != nil {
 			return &deliveryModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid date")
 		}
 	}
@@ -156,7 +155,7 @@ func (u *Delivery) Update(ctx context.Context, in *inventories.Delivery) (*inven
 		deliveryModel.Pb.SalesOrderId = in.GetSalesOrderId()
 	}
 
-	if in.GetDeliveryDate().IsValid() {
+	if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetDeliveryDate()); err == nil {
 		deliveryModel.Pb.DeliveryDate = in.GetDeliveryDate()
 	}
 
@@ -331,15 +330,8 @@ func (u *Delivery) List(in *inventories.ListDeliveryRequest, stream inventories.
 			return status.Errorf(codes.Internal, "scan data: %v", err)
 		}
 
-		pbDelivery.CreatedAt, err = ptypes.TimestampProto(createdAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-		}
-
-		pbDelivery.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-		}
+		pbDelivery.CreatedAt = createdAt.String()
+		pbDelivery.UpdatedAt = updatedAt.String()
 
 		res := &inventories.ListDeliveryResponse{
 			Pagination: paginationResponse,

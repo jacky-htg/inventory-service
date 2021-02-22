@@ -8,7 +8,6 @@ import (
 	"inventory-service/internal/model"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -207,15 +206,8 @@ func (u *Shelve) List(in *inventories.ListShelveRequest, stream inventories.Shel
 		}
 
 		pbShelve.Warehouse = &pbWarehouse
-		pbShelve.CreatedAt, err = ptypes.TimestampProto(createdAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-		}
-
-		pbShelve.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-		}
+		pbShelve.CreatedAt = createdAt.String()
+		pbShelve.UpdatedAt = updatedAt.String()
 
 		res := &inventories.ListShelveResponse{
 			Pagination: paginationResponse,

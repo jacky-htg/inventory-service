@@ -8,7 +8,6 @@ import (
 	"inventory-service/internal/model"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -195,15 +194,8 @@ func (u *Brand) List(in *inventories.Pagination, stream inventories.BrandService
 			return status.Errorf(codes.Internal, "scan data: %v", err)
 		}
 
-		pbBrand.CreatedAt, err = ptypes.TimestampProto(createdAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-		}
-
-		pbBrand.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-		}
+		pbBrand.CreatedAt = createdAt.String()
+		pbBrand.UpdatedAt = updatedAt.String()
 
 		res := &inventories.ListBrandResponse{
 			Pagination: paginationResponse,

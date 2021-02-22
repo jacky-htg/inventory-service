@@ -10,7 +10,6 @@ import (
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -54,15 +53,8 @@ func (u *Warehouse) Get(ctx context.Context, db *sql.DB) error {
 		return status.Error(codes.Unauthenticated, "its not your company data")
 	}
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	return nil
 }
@@ -96,15 +88,8 @@ func (u *Warehouse) GetByCode(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "Query Raw get warehouse by code: %v", err)
 	}
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	return nil
 }
@@ -144,11 +129,7 @@ func (u *Warehouse) Create(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "Exec insert warehouse: %v", err)
 	}
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert created by: %v", err)
-	}
-
+	u.Pb.CreatedAt = now.String()
 	u.Pb.UpdatedAt = u.Pb.CreatedAt
 
 	return nil
@@ -186,10 +167,7 @@ func (u *Warehouse) Update(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "Exec update warehouse: %v", err)
 	}
 
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updated by: %v", err)
-	}
+	u.Pb.UpdatedAt = now.String()
 
 	return nil
 }

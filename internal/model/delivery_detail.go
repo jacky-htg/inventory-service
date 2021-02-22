@@ -3,11 +3,11 @@ package model
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -84,7 +84,7 @@ func (u *DeliveryDetail) Create(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec insert delivery detail: %v", err)
 	}
 
-	transactionDate, err := ptypes.Timestamp(u.PbDelivery.GetDeliveryDate())
+	transactionDate, err := time.Parse("2006-01-02T15:04:05.000Z", u.PbDelivery.GetDeliveryDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert transactiondate inventory: %v", err)
 	}

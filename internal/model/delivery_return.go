@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -68,20 +67,9 @@ func (u *DeliveryReturn) Get(ctx context.Context, db *sql.DB) error {
 		return status.Error(codes.Unauthenticated, "its not your company")
 	}
 
-	u.Pb.ReturnDate, err = ptypes.TimestampProto(dateReturn)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert date: %v", err)
-	}
-
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.ReturnDate = dateReturn.String()
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	detailDeliveryReturns := []struct {
 		ID               string
@@ -122,7 +110,7 @@ func (u *DeliveryReturn) Create(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.CreatedBy = ctx.Value(app.Ctx("userID")).(string)
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateReturn, err := ptypes.Timestamp(u.Pb.GetReturnDate())
+	dateReturn, err := time.Parse("2006-01-02T15:04:05.000Z", u.Pb.GetReturnDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert Date: %v", err)
 	}
@@ -160,11 +148,7 @@ func (u *DeliveryReturn) Create(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec insert delivery return: %v", err)
 	}
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert created by: %v", err)
-	}
-
+	u.Pb.CreatedAt = now.String()
 	u.Pb.UpdatedAt = u.Pb.CreatedAt
 
 	for _, detail := range u.Pb.GetDetails() {
@@ -200,7 +184,7 @@ func (u *DeliveryReturn) Create(ctx context.Context, tx *sql.Tx) error {
 func (u *DeliveryReturn) Update(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateReturn, err := ptypes.Timestamp(u.Pb.GetReturnDate())
+	dateReturn, err := time.Parse("2006-01-02T15:04:05.000Z", u.Pb.GetReturnDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert delivery return date: %v", err)
 	}
@@ -232,10 +216,7 @@ func (u *DeliveryReturn) Update(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec update delivery return: %v", err)
 	}
 
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updated by: %v", err)
-	}
+	u.Pb.UpdatedAt = now.String()
 
 	return nil
 }

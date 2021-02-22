@@ -11,7 +11,6 @@ import (
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -69,20 +68,9 @@ func (u *Delivery) Get(ctx context.Context, db *sql.DB) error {
 		return status.Error(codes.Unauthenticated, "its not your company")
 	}
 
-	u.Pb.DeliveryDate, err = ptypes.TimestampProto(dateDelivery)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert date: %v", err)
-	}
-
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.DeliveryDate = dateDelivery.String()
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	detailDeliverys := []struct {
 		ID          string
@@ -146,20 +134,9 @@ func (u *Delivery) GetByCode(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "Query Raw get by code delivery: %v", err)
 	}
 
-	u.Pb.DeliveryDate, err = ptypes.TimestampProto(dateDelivery)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert date: %v", err)
-	}
-
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.DeliveryDate = dateDelivery.String()
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	return nil
 }
@@ -186,7 +163,7 @@ func (u *Delivery) Create(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.CreatedBy = ctx.Value(app.Ctx("userID")).(string)
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateDelivery, err := ptypes.Timestamp(u.Pb.GetDeliveryDate())
+	dateDelivery, err := time.Parse("2006-01-02T15:04:05.000Z", u.Pb.GetDeliveryDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert Date: %v", err)
 	}
@@ -224,11 +201,7 @@ func (u *Delivery) Create(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec insert delivery: %v", err)
 	}
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert created by: %v", err)
-	}
-
+	u.Pb.CreatedAt = now.String()
 	u.Pb.UpdatedAt = u.Pb.CreatedAt
 
 	for _, detail := range u.Pb.GetDetails() {
@@ -265,7 +238,7 @@ func (u *Delivery) Create(ctx context.Context, tx *sql.Tx) error {
 func (u *Delivery) Update(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateDelivery, err := ptypes.Timestamp(u.Pb.GetDeliveryDate())
+	dateDelivery, err := time.Parse("2006-01-02T15:04:05.000Z", u.Pb.GetDeliveryDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert delivery date: %v", err)
 	}
@@ -297,10 +270,7 @@ func (u *Delivery) Update(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec update delivery: %v", err)
 	}
 
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updated by: %v", err)
-	}
+	u.Pb.UpdatedAt = now.String()
 
 	return nil
 }

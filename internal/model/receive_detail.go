@@ -3,11 +3,11 @@ package model
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -63,7 +63,7 @@ func (u *ReceiveDetail) Get(ctx context.Context, tx *sql.Tx) error {
 // Create ReceiveDetail
 func (u *ReceiveDetail) Create(ctx context.Context, tx *sql.Tx) error {
 	u.Pb.Id = uuid.New().String()
-	expirdDate, err := ptypes.Timestamp(u.Pb.GetExpiredDate())
+	expirdDate, err := time.Parse("2006-01-02T15:04:05.000Z", u.Pb.GetExpiredDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert expired date: %v", err)
 	}
@@ -89,7 +89,7 @@ func (u *ReceiveDetail) Create(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec insert receive detail: %v", err)
 	}
 
-	transactionDate, err := ptypes.Timestamp(u.PbReceive.GetReceiveDate())
+	transactionDate, err := time.Parse("2006-01-02T15:04:05.000Z", u.PbReceive.GetReceiveDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert transactiondate inventory: %v", err)
 	}

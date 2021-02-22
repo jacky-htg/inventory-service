@@ -9,7 +9,6 @@ import (
 	"inventory-service/internal/model"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -39,7 +38,7 @@ func (u *Receive) Create(ctx context.Context, in *inventories.Receive) (*invento
 			return &receiveModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid purchase")
 		}
 
-		if in.GetReceiveDate().IsValid() {
+		if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetReceiveDate()); err != nil {
 			return &receiveModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid date")
 		}
 	}
@@ -74,7 +73,7 @@ func (u *Receive) Create(ctx context.Context, in *inventories.Receive) (*invento
 			return &receiveModel.Pb, err
 		}
 
-		if !detail.GetExpiredDate().IsValid() {
+		if _, err := time.Parse("2006-01-02T15:04:05.000Z", detail.GetExpiredDate()); err != nil {
 			return &receiveModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid expired date")
 		}
 	}
@@ -146,7 +145,7 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 		receiveModel.Pb.PurchaseId = in.GetPurchaseId()
 	}
 
-	if in.GetReceiveDate().IsValid() {
+	if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetReceiveDate()); err == nil {
 		receiveModel.Pb.ReceiveDate = in.GetReceiveDate()
 	}
 
@@ -191,7 +190,7 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 			return &receiveModel.Pb, err
 		}
 
-		if !detail.GetExpiredDate().IsValid() {
+		if _, err := time.Parse("2006-01-02T15:04:05.000Z", detail.GetExpiredDate()); err != nil {
 			tx.Rollback()
 			return &receiveModel.Pb, status.Error(codes.InvalidArgument, "please supllay valid expired date")
 		}
@@ -348,15 +347,8 @@ func (u *Receive) List(in *inventories.ListReceiveRequest, stream inventories.Re
 			return status.Errorf(codes.Internal, "scan data: %v", err)
 		}
 
-		pbReceive.CreatedAt, err = ptypes.TimestampProto(createdAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-		}
-
-		pbReceive.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-		}
+		pbReceive.CreatedAt = createdAt.String()
+		pbReceive.UpdatedAt = updatedAt.String()
 
 		res := &inventories.ListReceiveResponse{
 			Pagination: paginationResponse,

@@ -8,7 +8,6 @@ import (
 	"inventory-service/pb/users"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -38,7 +37,7 @@ func (u *ReceiveReturn) Create(ctx context.Context, in *inventories.ReceiveRetur
 			return &receiveReturnModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid receiving")
 		}
 
-		if in.GetReturnDate().IsValid() {
+		if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetReturnDate()); err != nil {
 			return &receiveReturnModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid date")
 		}
 	}
@@ -167,7 +166,7 @@ func (u *ReceiveReturn) Update(ctx context.Context, in *inventories.ReceiveRetur
 		receiveReturnModel.Pb.Receive = in.GetReceive()
 	}
 
-	if in.GetReturnDate().IsValid() {
+	if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetReturnDate()); err == nil {
 		receiveReturnModel.Pb.ReturnDate = in.GetReturnDate()
 	}
 
@@ -336,15 +335,8 @@ func (u *ReceiveReturn) List(in *inventories.ListReceiveReturnRequest, stream in
 			return status.Errorf(codes.Internal, "scan data: %v", err)
 		}
 
-		pbReceiveReturn.CreatedAt, err = ptypes.TimestampProto(createdAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-		}
-
-		pbReceiveReturn.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-		}
+		pbReceiveReturn.CreatedAt = createdAt.String()
+		pbReceiveReturn.UpdatedAt = updatedAt.String()
 
 		res := &inventories.ListReceiveReturnResponse{
 			Pagination:    paginationResponse,

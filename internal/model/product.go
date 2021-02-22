@@ -10,7 +10,6 @@ import (
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -69,15 +68,8 @@ func (u *Product) Get(ctx context.Context, db *sql.DB) error {
 	u.Pb.Brand = &pbBrand
 	u.Pb.ProductCategory = &pbProductCategory
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	return nil
 }
@@ -125,15 +117,8 @@ func (u *Product) GetByCode(ctx context.Context, db *sql.DB) error {
 	u.Pb.Brand = &pbBrand
 	u.Pb.ProductCategory = &pbProductCategory
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	return nil
 }
@@ -172,11 +157,7 @@ func (u *Product) Create(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "Exec insert product: %v", err)
 	}
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert created by: %v", err)
-	}
-
+	u.Pb.CreatedAt = now.String()
 	u.Pb.UpdatedAt = u.Pb.CreatedAt
 
 	return nil
@@ -216,10 +197,7 @@ func (u *Product) Update(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "Exec update product: %v", err)
 	}
 
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updated by: %v", err)
-	}
+	u.Pb.UpdatedAt = now.String()
 
 	return nil
 }

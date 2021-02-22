@@ -11,7 +11,6 @@ import (
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
-	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -69,20 +68,9 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 		return status.Error(codes.Unauthenticated, "its not your company")
 	}
 
-	u.Pb.ReceiveDate, err = ptypes.TimestampProto(dateReceive)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert date: %v", err)
-	}
-
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.ReceiveDate = dateReceive.String()
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	detailReceives := []struct {
 		ID          string
@@ -100,12 +88,8 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 	}
 
 	for _, detail := range detailReceives {
-		protoExpiredDate, err := ptypes.TimestampProto(detail.ExpiredDate)
-		if err != nil {
-			return status.Errorf(codes.Internal, "convert proto expired date: %v", err)
-		}
 		u.Pb.Details = append(u.Pb.Details, &inventories.ReceiveDetail{
-			ExpiredDate: protoExpiredDate,
+			ExpiredDate: detail.ExpiredDate.String(),
 			Id:          detail.ID,
 			Product: &inventories.Product{
 				Id:   detail.ProductID,
@@ -150,20 +134,9 @@ func (u *Receive) GetByCode(ctx context.Context, db *sql.DB) error {
 		return status.Errorf(codes.Internal, "Query Raw get by code receive: %v", err)
 	}
 
-	u.Pb.ReceiveDate, err = ptypes.TimestampProto(dateReceive)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert date: %v", err)
-	}
-
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(createdAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert createdAt: %v", err)
-	}
-
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(updatedAt)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updateddAt: %v", err)
-	}
+	u.Pb.ReceiveDate = dateReceive.String()
+	u.Pb.CreatedAt = createdAt.String()
+	u.Pb.UpdatedAt = updatedAt.String()
 
 	return nil
 }
@@ -190,7 +163,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.CreatedBy = ctx.Value(app.Ctx("userID")).(string)
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateReceive, err := ptypes.Timestamp(u.Pb.GetReceiveDate())
+	dateReceive, err := time.Parse("2006-01-02T15:04:05.000Z", u.Pb.GetReceiveDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert Date: %v", err)
 	}
@@ -228,11 +201,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec insert receive: %v", err)
 	}
 
-	u.Pb.CreatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert created by: %v", err)
-	}
-
+	u.Pb.CreatedAt = now.String()
 	u.Pb.UpdatedAt = u.Pb.CreatedAt
 
 	for _, detail := range u.Pb.GetDetails() {
@@ -269,7 +238,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 func (u *Receive) Update(ctx context.Context, tx *sql.Tx) error {
 	now := time.Now().UTC()
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
-	dateReceive, err := ptypes.Timestamp(u.Pb.GetReceiveDate())
+	dateReceive, err := time.Parse("2006-01-02T15:04:05.000Z", u.Pb.GetReceiveDate())
 	if err != nil {
 		return status.Errorf(codes.Internal, "convert receive date: %v", err)
 	}
@@ -301,10 +270,7 @@ func (u *Receive) Update(ctx context.Context, tx *sql.Tx) error {
 		return status.Errorf(codes.Internal, "Exec update receive: %v", err)
 	}
 
-	u.Pb.UpdatedAt, err = ptypes.TimestampProto(now)
-	if err != nil {
-		return status.Errorf(codes.Internal, "convert updated by: %v", err)
-	}
+	u.Pb.UpdatedAt = now.String()
 
 	return nil
 }
