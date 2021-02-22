@@ -66,3 +66,33 @@ func (u *Stock) List(ctx context.Context, in *inventories.StockListInput) (*inve
 
 	return &stockModel.StockList, nil
 }
+
+// Info Stock
+func (u *Stock) Info(ctx context.Context, in *inventories.StockInfoInput) (*inventories.StockInfo, error) {
+	var stockModel model.Stock
+	var err error
+
+	ctx, err = getMetadata(ctx)
+	if err != nil {
+		return &inventories.StockInfo{}, err
+	}
+
+	if len(in.GetBranchId()) > 0 {
+		err = isYourBranch(ctx, u.UserClient, u.RegionClient, u.BranchClient, in.GetBranchId())
+		if err != nil {
+			return &inventories.StockInfo{}, err
+		}
+	}
+
+	stockModel.InfoInput = inventories.StockInfoInput{
+		BranchId:  in.BranchId,
+		ProductId: in.ProductId,
+	}
+
+	err = stockModel.Info(ctx, u.Db)
+	if err != nil {
+		return &inventories.StockInfo{}, err
+	}
+
+	return &stockModel.StockInfo, nil
+}
