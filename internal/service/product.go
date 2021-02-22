@@ -283,5 +283,32 @@ func (u *Product) List(in *inventories.ListProductRequest, stream inventories.Pr
 
 // Track product history
 func (u *Product) Track(ctx context.Context, in *inventories.Product) (*inventories.Transactions, error) {
-	return &inventories.Transactions{}, nil
+	var output inventories.Transactions
+	var productModel model.Product
+	var err error
+
+	// basic validation
+	{
+		if len(in.GetId()) == 0 {
+			return &output, status.Error(codes.InvalidArgument, "Please supply valid id")
+		}
+		productModel.Pb.Id = in.GetId()
+	}
+
+	ctx, err = getMetadata(ctx)
+	if err != nil {
+		return &output, err
+	}
+
+	err = productModel.Get(ctx, u.Db)
+	if err != nil {
+		return &output, err
+	}
+
+	err = productModel.Track(ctx, u.Db)
+	if err != nil {
+		return &output, err
+	}
+
+	return &productModel.PbTransactions, nil
 }
