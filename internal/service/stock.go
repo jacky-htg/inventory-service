@@ -59,6 +59,10 @@ func (u *Stock) List(ctx context.Context, in *inventories.StockListInput) (*inve
 		}
 	}
 
+	stockModel.ListInput = inventories.StockListInput{
+		BranchId: in.BranchId,
+	}
+
 	err = stockModel.List(ctx, u.Db)
 	if err != nil {
 		return &inventories.StockList{}, err
