@@ -17,10 +17,6 @@ message StockListInput {
   string branch_id = 1;
 }
 
-message StockListInput {
-  string branch_id = 1;
-}
-
 message StockInfoInput {
   string branch_id = 1;
   string product_id = 2;
