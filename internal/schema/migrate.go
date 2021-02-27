@@ -543,6 +543,42 @@ var migrations = []darwin.Migration{
 		$$ language plpgsql
 		`,
 	},
+	{
+		Version:     22,
+		Description: "Add shelve mutations",
+		Script: `
+		CREATE TABLE shelve_mutations (
+			id char(36) NOT NULL PRIMARY KEY,
+			company_id	char(36) NOT NULL,
+			warehouse_id	char(36) NOT NULL,
+			code	CHAR(13) NOT NULL,
+			mutation_date	DATE NOT NULL,
+			remark VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			created_by char(36) NOT NULL,
+			updated_by char(36) NOT NULL,
+			UNIQUE(company_id, code)
+		);`,
+	},
+	{
+		Version:     23,
+		Description: "Add sheleve mutation Details",
+		Script: `
+		CREATE TABLE shelve_mutation_details (
+			id char(36) NOT NULL PRIMARY KEY,
+			shelve_mutation_id	char(36) NOT NULL,
+			product_id char(36) NOT NULL,
+			barcode char(36) NOT NULL,
+			from_shelve_id char(36) NOT NULL,
+			to_shelve_id char(36) NOT NULL,
+			UNIQUE(shelve_mutation_id, barcode),
+			CONSTRAINT fk_shelve_mutation_details_to_shelve_mutations FOREIGN KEY (shelve_mutation_id) REFERENCES shelve_mutations(id) ON DELETE CASCADE ON UPDATE CASCADE,
+			CONSTRAINT fk_shelve_mutation_details_to_products FOREIGN KEY (product_id) REFERENCES products(id),
+			CONSTRAINT fk_shelve_mutation__details_to_origin_shelves FOREIGN KEY (from_shelve_id) REFERENCES shelves(id),
+			CONSTRAINT fk_shelve_mutation__details_to_destination_shelves FOREIGN KEY (to_shelve_id) REFERENCES shelves(id)
+		);`,
+	},
 }
 
 // Migrate attempts to bring the schema for db up to date with the migrations
