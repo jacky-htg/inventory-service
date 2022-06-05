@@ -19,6 +19,7 @@ type Delivery struct {
 	UserClient   users.UserServiceClient
 	RegionClient users.RegionServiceClient
 	BranchClient users.BranchServiceClient
+	inventories.UnimplementedDeliveryServiceServer
 }
 
 // Create Delivery

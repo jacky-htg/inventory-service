@@ -11,6 +11,7 @@ import (
 // Category struct
 type Category struct {
 	Db *sql.DB
+	inventories.UnimplementedCategoryServiceServer
 }
 
 // List Category

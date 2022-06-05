@@ -15,6 +15,7 @@ import (
 // Brand struct
 type Brand struct {
 	Db *sql.DB
+	inventories.UnimplementedBrandServiceServer
 }
 
 // Create Brand

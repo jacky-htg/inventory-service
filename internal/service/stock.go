@@ -14,6 +14,7 @@ type Stock struct {
 	UserClient   users.UserServiceClient
 	RegionClient users.RegionServiceClient
 	BranchClient users.BranchServiceClient
+	inventories.UnimplementedStockServiceServer
 }
 
 // Closing Stock

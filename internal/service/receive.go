@@ -19,6 +19,7 @@ type Receive struct {
 	UserClient   users.UserServiceClient
 	RegionClient users.RegionServiceClient
 	BranchClient users.BranchServiceClient
+	inventories.UnimplementedReceiveServiceServer
 }
 
 // Create Receive

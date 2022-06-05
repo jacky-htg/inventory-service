@@ -19,6 +19,7 @@ type Warehouse struct {
 	UserClient   users.UserServiceClient
 	RegionClient users.RegionServiceClient
 	BranchClient users.BranchServiceClient
+	inventories.UnimplementedWarehouseServiceServer
 }
 
 // Create Warehouse

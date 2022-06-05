@@ -15,6 +15,7 @@ import (
 // Shelve struct
 type Shelve struct {
 	Db *sql.DB
+	inventories.UnimplementedShelveServiceServer
 }
 
 // Create Shelve

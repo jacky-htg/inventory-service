@@ -15,6 +15,7 @@ import (
 // Product struct
 type Product struct {
 	Db *sql.DB
+	inventories.UnimplementedProductServiceServer
 }
 
 // Create Product
