@@ -20,4 +20,5 @@
 go.mod
 go.sum
 log/*
+pb/*
 # client
