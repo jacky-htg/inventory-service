@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"inventory-service/internal/pkg/app"
+	"inventory-service/internal/pkg/util"
 	"inventory-service/pb/inventories"
 
 	"github.com/google/uuid"
@@ -233,6 +234,16 @@ func (u *Product) ListQuery(ctx context.Context, db *sql.DB, in *inventories.Lis
 	`
 	where := []string{"products.company_id = $1"}
 	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
+
+	if len(in.GetIds()) > 0 {
+		productIds := make([]interface{}, len(in.GetIds()))
+		for i, productId := range in.GetIds() {
+			productIds[i] = productId
+		}
+		var iCond string
+		paramQueries, iCond = util.ConvertWhereIn("id", paramQueries, productIds)
+		where = append(where, iCond)
+	}
 
 	if len(in.GetPagination().GetSearch()) > 0 {
 		paramQueries = append(paramQueries, in.GetPagination().GetSearch())

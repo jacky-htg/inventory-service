@@ -13,13 +13,15 @@ message ListProductRequest {
   Pagination pagination = 1;
   string product_category_id = 2;
   string brand_id = 3;
+  repeated string ids = 4;
 }
 
 message ProductPaginationResponse {
   Pagination pagination = 1;
   string product_category_id = 2;
   string brand_id = 3;
-  uint32 count = 4;
+  repeated string ids = 4;
+  uint32 count = 5;
 }
 
 message ListProductResponse {
