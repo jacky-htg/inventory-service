@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"inventory-service/internal/pkg/app"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -27,4 +28,21 @@ func GetCode(ctx context.Context, tx *sql.Tx, tableName string, code string) (st
 		time.Now().UTC().Year(),
 		int(time.Now().UTC().Month()),
 		(count + 1)), nil
+}
+
+func ConvertWhereIn(field string, paramQueries []interface{}, data []interface{}) ([]interface{}, string) {
+	ph := make([]string, len(data))
+	tmpLen := make([]interface{}, len(data))
+	for i, d := range data {
+		paramQueries = append(paramQueries, d)
+		ph[i] = "$%d"
+		tmpLen[i] = len(paramQueries)
+	}
+
+	if len(tmpLen) > 0 {
+		where := fmt.Sprintf("%s IN ", field) + "(" + strings.Join(ph, ", ") + ")"
+		return paramQueries, fmt.Sprintf(where, tmpLen...)
+	}
+
+	return paramQueries, ""
 }
