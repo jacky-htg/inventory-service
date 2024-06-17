@@ -184,7 +184,7 @@ func (u *Brand) ListQuery(ctx context.Context, db *sql.DB, in *inventories.Pagin
 	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
 
 	if len(in.GetSearch()) > 0 {
-		paramQueries = append(paramQueries, in.GetSearch())
+		paramQueries = append(paramQueries, "%"+in.GetSearch()+"%")
 		where = append(where, fmt.Sprintf(`(name ILIKE $%d OR code ILIKE $%d)`, len(paramQueries), len(paramQueries)))
 	}
 
