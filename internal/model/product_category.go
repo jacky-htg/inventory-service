@@ -150,23 +150,27 @@ func (u *ProductCategory) Delete(ctx context.Context, db *sql.DB) error {
 // ListQuery builder
 func (u *ProductCategory) ListQuery(ctx context.Context, db *sql.DB, in *inventories.ListProductCategoryRequest) (string, []interface{}, *inventories.ProductCategoryPaginationResponse, error) {
 	var paginationResponse inventories.ProductCategoryPaginationResponse
-	query := `SELECT id, company_id, category_id, name, created_at, created_by, updated_at, updated_by 
-	FROM product_categories`
-	where := []string{"company_id = $1"}
+	query := `
+		SELECT product_categories.id, product_categories.company_id, 
+			product_categories.category_id, categories.name category_name, 
+			product_categories.name, product_categories.created_at, product_categories.created_by, 
+			product_categories.updated_at, product_categories.updated_by 
+		FROM product_categories JOIN categories ON product_categories.category_id = categories.id`
+	where := []string{"product_categories.company_id = $1"}
 	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
 
 	if len(in.GetCategoryId()) > 0 {
 		paramQueries = append(paramQueries, in.GetCategoryId())
-		where = append(where, fmt.Sprintf("category_id = $%d", len(paramQueries)))
+		where = append(where, fmt.Sprintf("product_categories.category_id = $%d", len(paramQueries)))
 	}
 
 	if len(in.GetPagination().GetSearch()) > 0 {
-		paramQueries = append(paramQueries, in.GetPagination().GetSearch())
-		where = append(where, fmt.Sprintf(`name ILIKE $%d`, len(paramQueries)))
+		paramQueries = append(paramQueries, "%"+in.GetPagination().GetSearch()+"%")
+		where = append(where, fmt.Sprintf(`product_categories.name ILIKE $%d`, len(paramQueries)))
 	}
 
 	{
-		qCount := `SELECT COUNT(*) FROM product_categories`
+		qCount := `SELECT COUNT(*) FROM product_categories JOIN categories ON product_categories.category_id = categories.id`
 		if len(where) > 0 {
 			qCount += " WHERE " + strings.Join(where, " AND ")
 		}
@@ -191,7 +195,7 @@ func (u *ProductCategory) ListQuery(ctx context.Context, db *sql.DB, in *invento
 		}
 	}
 
-	query += ` ORDER BY ` + in.GetPagination().GetOrderBy() + ` ` + in.GetPagination().GetSort().String()
+	query += ` ORDER BY product_categories.` + in.GetPagination().GetOrderBy() + ` ` + in.GetPagination().GetSort().String()
 
 	if in.GetPagination().GetLimit() > 0 {
 		query += fmt.Sprintf(` LIMIT $%d OFFSET $%d`, (len(paramQueries) + 1), (len(paramQueries) + 2))

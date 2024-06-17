@@ -196,7 +196,7 @@ func (u *ProductCategory) List(in *inventories.ListProductCategoryRequest, strea
 		var companyID string
 		var pbCategory inventories.Category
 		var createdAt, updatedAt time.Time
-		err = rows.Scan(&pbProductCategory.Id, &companyID, &pbCategory.Id, &pbProductCategory.Name, &createdAt, &pbProductCategory.CreatedBy, &updatedAt, &pbProductCategory.UpdatedBy)
+		err = rows.Scan(&pbProductCategory.Id, &companyID, &pbCategory.Id, &pbCategory.Name, &pbProductCategory.Name, &createdAt, &pbProductCategory.CreatedBy, &updatedAt, &pbProductCategory.UpdatedBy)
 		if err != nil {
 			return status.Errorf(codes.Internal, "scan data: %v", err)
 		}
