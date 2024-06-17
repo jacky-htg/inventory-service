@@ -84,7 +84,7 @@ func (u *Product) Create(ctx context.Context, in *inventories.Product) (*invento
 		ProductCategory: in.GetProductCategory(),
 		Name:            in.GetName(),
 		Code:            in.GetCode(),
-		MinimunStock:    in.GetMinimunStock(),
+		MinimumStock:    in.GetMinimumStock(),
 	}
 	err = productModel.Create(ctx, u.Db)
 	if err != nil {
@@ -121,7 +121,7 @@ func (u *Product) Update(ctx context.Context, in *inventories.Product) (*invento
 		productModel.Pb.Name = in.GetName()
 	}
 
-	productModel.Pb.MinimunStock = in.GetMinimunStock()
+	productModel.Pb.MinimumStock = in.GetMinimumStock()
 
 	if len(in.GetBrand().GetId()) > 0 && in.GetBrand().GetId() != productModel.Pb.GetBrand().GetId() {
 		brandModel := model.Brand{}
@@ -247,7 +247,7 @@ func (u *Product) List(in *inventories.ListProductRequest, stream inventories.Pr
 			&pbProduct.Id, &companyID,
 			&pbBrand.Id, &pbBrand.Code, &pbBrand.Name,
 			&pbProductCategory.Id, &pbProductCategory.Name,
-			&pbProduct.Code, &pbProduct.Name, &pbProduct.MinimunStock,
+			&pbProduct.Code, &pbProduct.Name, &pbProduct.MinimumStock,
 			&createdAt, &pbProduct.CreatedBy, &updatedAt, &pbProduct.UpdatedBy,
 		)
 

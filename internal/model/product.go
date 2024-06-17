@@ -50,7 +50,7 @@ func (u *Product) Get(ctx context.Context, db *sql.DB) error {
 		&u.Pb.Id, &companyID,
 		&pbBrand.Id, &pbBrand.Code, &pbBrand.Name,
 		&pbProductCategory.Id, &pbProductCategory.Name,
-		&u.Pb.Code, &u.Pb.Name, &u.Pb.MinimunStock,
+		&u.Pb.Code, &u.Pb.Name, &u.Pb.MinimumStock,
 		&createdAt, &u.Pb.CreatedBy, &updatedAt, &u.Pb.UpdatedBy,
 	)
 
@@ -103,7 +103,7 @@ func (u *Product) GetByCode(ctx context.Context, db *sql.DB) error {
 		&u.Pb.Id, &companyID,
 		&pbBrand.Id, &pbBrand.Code, &pbBrand.Name,
 		&pbProductCategory.Id, &pbProductCategory.Name,
-		&u.Pb.Code, &u.Pb.Name, &u.Pb.MinimunStock,
+		&u.Pb.Code, &u.Pb.Name, &u.Pb.MinimumStock,
 		&createdAt, &u.Pb.CreatedBy, &updatedAt, &u.Pb.UpdatedBy,
 	)
 
@@ -148,7 +148,7 @@ func (u *Product) Create(ctx context.Context, db *sql.DB) error {
 		u.Pb.GetProductCategory().GetId(),
 		u.Pb.GetCode(),
 		u.Pb.GetName(),
-		u.Pb.GetMinimunStock(),
+		u.Pb.GetMinimumStock(),
 		now,
 		u.Pb.GetCreatedBy(),
 		now,
@@ -189,7 +189,7 @@ func (u *Product) Update(ctx context.Context, db *sql.DB) error {
 		u.Pb.GetBrand().GetId(),
 		u.Pb.GetProductCategory().GetId(),
 		u.Pb.GetName(),
-		u.Pb.GetMinimunStock(),
+		u.Pb.GetMinimumStock(),
 		now,
 		u.Pb.GetUpdatedBy(),
 		u.Pb.GetId(),

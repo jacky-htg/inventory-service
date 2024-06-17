@@ -14,7 +14,7 @@ message Product {
   ProductCategory product_category = 3;
   string code = 4;
   string name = 5;
-  uint32 minimun_stock = 6;
+  uint32 minimum_stock = 6;
   string created_at = 7;
   string created_by = 8;
   string updated_at = 9;

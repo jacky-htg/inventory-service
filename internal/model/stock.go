@@ -80,7 +80,7 @@ func (u *Stock) List(ctx context.Context, db *sql.DB) error {
 			&pbProduct.Id, &companyID,
 			&pbBrand.Id, &pbBrand.Code, &pbBrand.Name,
 			&pbProductCategory.Id, &pbProductCategory.Name,
-			&pbProduct.Code, &pbProduct.Name, &pbProduct.MinimunStock,
+			&pbProduct.Code, &pbProduct.Name, &pbProduct.MinimumStock,
 			&createdAt, &pbProduct.CreatedBy, &updatedAt, &pbProduct.UpdatedBy,
 			&stock,
 		)
@@ -148,7 +148,7 @@ func (u *Stock) Info(ctx context.Context, db *sql.DB) error {
 		&pbProduct.Id, &companyID,
 		&pbBrand.Id, &pbBrand.Code, &pbBrand.Name,
 		&pbProductCategory.Id, &pbProductCategory.Name,
-		&pbProduct.Code, &pbProduct.Name, &pbProduct.MinimunStock,
+		&pbProduct.Code, &pbProduct.Name, &pbProduct.MinimumStock,
 		&createdAt, &pbProduct.CreatedBy, &updatedAt, &pbProduct.UpdatedBy,
 		&stock,
 	)
