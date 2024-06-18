@@ -37,7 +37,7 @@ func (u *Shelve) Create(ctx context.Context, in *inventories.Shelve) (*inventori
 
 	// warehouse validation
 	{
-		warehouseModel := model.Category{}
+		warehouseModel := model.Warehouse{}
 		warehouseModel.Pb.Id = in.GetWarehouse().GetId()
 		err = warehouseModel.Get(ctx, u.Db)
 		if err != nil {

@@ -65,7 +65,7 @@ func (u *Shelve) GetByCode(ctx context.Context, db *sql.DB) error {
 		shelves.created_at, shelves.created_by, shelves.updated_at, shelves.updated_by 
 		FROM shelves 
 		JOIN warehouses ON shelves.warehouse_id = warehouses.id 
-		WHERE shelves.code = $1 AND warohouses.company_id = $2
+		WHERE shelves.code = $1 AND warehouses.company_id = $2
 	`
 
 	stmt, err := db.PrepareContext(ctx, query)
