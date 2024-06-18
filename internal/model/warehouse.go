@@ -102,7 +102,7 @@ func (u *Warehouse) Create(ctx context.Context, db *sql.DB) error {
 	u.Pb.UpdatedBy = ctx.Value(app.Ctx("userID")).(string)
 
 	query := `
-		INSERT INTO warehousres (id, company_id, branch_id, branch_name, code, name, pic_name, pic_phone, created_at, created_by, updated_at, updated_by) 
+		INSERT INTO warehouses (id, company_id, branch_id, branch_name, code, name, pic_name, pic_phone, created_at, created_by, updated_at, updated_by) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	`
 	stmt, err := db.PrepareContext(ctx, query)
