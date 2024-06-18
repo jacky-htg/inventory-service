@@ -203,7 +203,7 @@ func (u *Warehouse) ListQuery(ctx context.Context, db *sql.DB, in *inventories.L
 	}
 
 	if len(in.GetPagination().GetSearch()) > 0 {
-		paramQueries = append(paramQueries, in.GetPagination().GetSearch())
+		paramQueries = append(paramQueries, "%"+in.GetPagination().GetSearch()+"%")
 		where = append(where, fmt.Sprintf(`(name ILIKE $%d OR code ILIKE $%d OR pic_name ILIKE $%d OR pic_phone ILIKE $%d)`,
 			len(paramQueries), len(paramQueries), len(paramQueries), len(paramQueries)))
 	}
