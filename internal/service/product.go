@@ -224,6 +224,9 @@ func (u *Product) List(in *inventories.ListProductRequest, stream inventories.Pr
 
 	var productModel model.Product
 	query, paramQueries, paginationResponse, err := productModel.ListQuery(ctx, u.Db, in)
+	if err != nil {
+		return err
+	}
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {

@@ -241,7 +241,7 @@ func (u *Product) ListQuery(ctx context.Context, db *sql.DB, in *inventories.Lis
 			productIds[i] = productId
 		}
 		var iCond string
-		paramQueries, iCond = util.ConvertWhereIn("id", paramQueries, productIds)
+		paramQueries, iCond = util.ConvertWhereIn("products.id", paramQueries, productIds)
 		where = append(where, iCond)
 	}
 
