@@ -198,7 +198,7 @@ func (u *Shelve) ListQuery(ctx context.Context, db *sql.DB, in *inventories.List
 	}
 
 	if len(in.GetPagination().GetSearch()) > 0 {
-		paramQueries = append(paramQueries, in.GetPagination().GetSearch())
+		paramQueries = append(paramQueries, "%"+in.GetPagination().GetSearch()+"%")
 		where = append(where, fmt.Sprintf(`shelves.code ILIKE $%d`, len(paramQueries)))
 	}
 

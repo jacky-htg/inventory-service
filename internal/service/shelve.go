@@ -180,6 +180,9 @@ func (u *Shelve) List(in *inventories.ListShelveRequest, stream inventories.Shel
 
 	var shelveModel model.Shelve
 	query, paramQueries, paginationResponse, err := shelveModel.ListQuery(ctx, u.Db, in)
+	if err != nil {
+		return err
+	}
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {
