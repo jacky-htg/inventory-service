@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"inventory-service/internal/model"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
 	"google.golang.org/grpc/codes"
@@ -36,11 +37,6 @@ func (u *Product) Create(ctx context.Context, in *inventories.Product) (*invento
 		if len(in.GetProductCategory().GetId()) == 0 {
 			return &productModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid product category")
 		}
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &productModel.Pb, err
 	}
 
 	// brand validation
@@ -107,11 +103,6 @@ func (u *Product) Update(ctx context.Context, in *inventories.Product) (*invento
 		productModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &productModel.Pb, err
-	}
-
 	err = productModel.Get(ctx, u.Db)
 	if err != nil {
 		return &productModel.Pb, err
@@ -166,11 +157,6 @@ func (u *Product) View(ctx context.Context, in *inventories.Id) (*inventories.Pr
 		productModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &productModel.Pb, err
-	}
-
 	err = productModel.Get(ctx, u.Db)
 	if err != nil {
 		return &productModel.Pb, err
@@ -195,11 +181,6 @@ func (u *Product) Delete(ctx context.Context, in *inventories.Id) (*inventories.
 		productModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &output, err
-	}
-
 	err = productModel.Get(ctx, u.Db)
 	if err != nil {
 		return &output, err
@@ -217,11 +198,6 @@ func (u *Product) Delete(ctx context.Context, in *inventories.Id) (*inventories.
 // List Product
 func (u *Product) List(in *inventories.ListProductRequest, stream inventories.ProductService_ListServer) error {
 	ctx := stream.Context()
-	ctx, err := getMetadata(ctx)
-	if err != nil {
-		return err
-	}
-
 	var productModel model.Product
 	query, paramQueries, paginationResponse, err := productModel.ListQuery(ctx, u.Db, in)
 	if err != nil {
@@ -236,7 +212,7 @@ func (u *Product) List(in *inventories.ListProductRequest, stream inventories.Pr
 	paginationResponse.Pagination = in.GetPagination()
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}
@@ -289,11 +265,6 @@ func (u *Product) Track(ctx context.Context, in *inventories.Product) (*inventor
 			return &output, status.Error(codes.InvalidArgument, "Please supply valid id")
 		}
 		productModel.Pb.Id = in.GetId()
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &output, err
 	}
 
 	err = productModel.Get(ctx, u.Db)

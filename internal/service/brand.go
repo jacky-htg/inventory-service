@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"inventory-service/internal/model"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
 	"google.golang.org/grpc/codes"
@@ -28,11 +29,6 @@ func (u *Brand) Create(ctx context.Context, in *inventories.Brand) (*inventories
 		if len(in.GetName()) == 0 {
 			return &brandModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid name")
 		}
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &brandModel.Pb, err
 	}
 
 	// code validation
@@ -80,11 +76,6 @@ func (u *Brand) Update(ctx context.Context, in *inventories.Brand) (*inventories
 		brandModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &brandModel.Pb, err
-	}
-
 	err = brandModel.Get(ctx, u.Db)
 	if err != nil {
 		return &brandModel.Pb, err
@@ -115,11 +106,6 @@ func (u *Brand) View(ctx context.Context, in *inventories.Id) (*inventories.Bran
 		brandModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &brandModel.Pb, err
-	}
-
 	err = brandModel.Get(ctx, u.Db)
 	if err != nil {
 		return &brandModel.Pb, err
@@ -144,11 +130,6 @@ func (u *Brand) Delete(ctx context.Context, in *inventories.Id) (*inventories.My
 		brandModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &output, err
-	}
-
 	err = brandModel.Get(ctx, u.Db)
 	if err != nil {
 		return &output, err
@@ -166,13 +147,11 @@ func (u *Brand) Delete(ctx context.Context, in *inventories.Id) (*inventories.My
 // List Brand
 func (u *Brand) List(in *inventories.Pagination, stream inventories.BrandService_ListServer) error {
 	ctx := stream.Context()
-	ctx, err := getMetadata(ctx)
+	var brandModel model.Brand
+	query, paramQueries, paginationResponse, err := brandModel.ListQuery(ctx, u.Db, in)
 	if err != nil {
 		return err
 	}
-
-	var brandModel model.Brand
-	query, paramQueries, paginationResponse, err := brandModel.ListQuery(ctx, u.Db, in)
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {
@@ -182,7 +161,7 @@ func (u *Brand) List(in *inventories.Pagination, stream inventories.BrandService
 	paginationResponse.Pagination = in
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}

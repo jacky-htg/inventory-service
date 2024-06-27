@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"inventory-service/internal/model"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 	"inventory-service/pb/users"
 	"time"
@@ -41,11 +42,6 @@ func (u *DeliveryReturn) Create(ctx context.Context, in *inventories.DeliveryRet
 		if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetReturnDate()); err != nil {
 			return &deliveryReturnModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid date")
 		}
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &deliveryReturnModel.Pb, err
 	}
 
 	for _, detail := range in.GetDetails() {
@@ -123,11 +119,6 @@ func (u *DeliveryReturn) View(ctx context.Context, in *inventories.Id) (*invento
 		deliveryReturnModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &deliveryReturnModel.Pb, err
-	}
-
 	err = deliveryReturnModel.Get(ctx, u.Db)
 	if err != nil {
 		return &deliveryReturnModel.Pb, err
@@ -153,11 +144,6 @@ func (u *DeliveryReturn) Update(ctx context.Context, in *inventories.DeliveryRet
 
 	// TODO : if any mutation_unit update will be blocked
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &deliveryReturnModel.Pb, err
-	}
-
 	err = deliveryReturnModel.Get(ctx, u.Db)
 	if err != nil {
 		return &deliveryReturnModel.Pb, err
@@ -182,7 +168,7 @@ func (u *DeliveryReturn) Update(ctx context.Context, in *inventories.DeliveryRet
 		return &deliveryReturnModel.Pb, err
 	}
 
-	var newDetails []*inventories.DeliveryReturnDetail
+	// var newDetails []*inventories.DeliveryReturnDetail
 	for _, detail := range in.GetDetails() {
 		// product validation
 		if len(detail.GetProduct().GetId()) == 0 {
@@ -245,7 +231,7 @@ func (u *DeliveryReturn) Update(ctx context.Context, in *inventories.DeliveryRet
 				return &deliveryReturnModel.Pb, err
 			}
 
-			newDetails = append(newDetails, &deliveryReturnDetailModel.Pb)
+			// newDetails = append(newDetails, &deliveryReturnDetailModel.Pb)
 			for index, data := range deliveryReturnModel.Pb.GetDetails() {
 				if data.GetId() == detail.GetId() {
 					deliveryReturnModel.Pb.Details = append(deliveryReturnModel.Pb.Details[:index], deliveryReturnModel.Pb.Details[index+1:]...)
@@ -280,7 +266,7 @@ func (u *DeliveryReturn) Update(ctx context.Context, in *inventories.DeliveryRet
 				return &deliveryReturnModel.Pb, err
 			}
 
-			newDetails = append(newDetails, &deliveryReturnDetailModel.Pb)
+			// newDetails = append(newDetails, &deliveryReturnDetailModel.Pb)
 		}
 	}
 
@@ -305,13 +291,11 @@ func (u *DeliveryReturn) Update(ctx context.Context, in *inventories.DeliveryRet
 // List DeliveryReturn
 func (u *DeliveryReturn) List(in *inventories.ListDeliveryReturnRequest, stream inventories.DeliveryReturnService_ListServer) error {
 	ctx := stream.Context()
-	ctx, err := getMetadata(ctx)
+	var deliveryReturnModel model.DeliveryReturn
+	query, paramQueries, paginationResponse, err := deliveryReturnModel.ListQuery(ctx, u.Db, in)
 	if err != nil {
 		return err
 	}
-
-	var deliveryReturnModel model.DeliveryReturn
-	query, paramQueries, paginationResponse, err := deliveryReturnModel.ListQuery(ctx, u.Db, in)
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {
@@ -321,7 +305,7 @@ func (u *DeliveryReturn) List(in *inventories.ListDeliveryReturnRequest, stream 
 	paginationResponse.Pagination = in.GetPagination()
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}

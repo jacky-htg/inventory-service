@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"inventory-service/internal/model"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
 	"google.golang.org/grpc/codes"
@@ -28,11 +29,6 @@ func (u *Shelve) Create(ctx context.Context, in *inventories.Shelve) (*inventori
 		if len(in.GetCapacity()) == 0 {
 			return &shelveModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid capacity")
 		}
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &shelveModel.Pb, err
 	}
 
 	// warehouse validation
@@ -87,11 +83,6 @@ func (u *Shelve) Update(ctx context.Context, in *inventories.Shelve) (*inventori
 		shelveModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &shelveModel.Pb, err
-	}
-
 	err = shelveModel.Get(ctx, u.Db)
 	if err != nil {
 		return &shelveModel.Pb, err
@@ -122,11 +113,6 @@ func (u *Shelve) View(ctx context.Context, in *inventories.Id) (*inventories.She
 		shelveModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &shelveModel.Pb, err
-	}
-
 	err = shelveModel.Get(ctx, u.Db)
 	if err != nil {
 		return &shelveModel.Pb, err
@@ -151,11 +137,6 @@ func (u *Shelve) Delete(ctx context.Context, in *inventories.Id) (*inventories.M
 		shelveModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &output, err
-	}
-
 	err = shelveModel.Get(ctx, u.Db)
 	if err != nil {
 		return &output, err
@@ -173,11 +154,6 @@ func (u *Shelve) Delete(ctx context.Context, in *inventories.Id) (*inventories.M
 // List Shelve
 func (u *Shelve) List(in *inventories.ListShelveRequest, stream inventories.ShelveService_ListServer) error {
 	ctx := stream.Context()
-	ctx, err := getMetadata(ctx)
-	if err != nil {
-		return err
-	}
-
 	var shelveModel model.Shelve
 	query, paramQueries, paginationResponse, err := shelveModel.ListQuery(ctx, u.Db, in)
 	if err != nil {
@@ -192,7 +168,7 @@ func (u *Shelve) List(in *inventories.ListShelveRequest, stream inventories.Shel
 	paginationResponse.Pagination = in.GetPagination()
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}

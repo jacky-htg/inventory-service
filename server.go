@@ -4,6 +4,7 @@ import (
 	"net"
 	"os"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 
@@ -45,7 +46,17 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	mdInterceptor := middleware.Metadata{}
+	serverOptions := []grpc.ServerOption{
+		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+			mdInterceptor.Unary(),
+		)),
+		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
+			mdInterceptor.Stream(),
+		)),
+	}
+
+	grpcServer := grpc.NewServer(serverOptions...)
 
 	userConn, err := grpc.Dial(os.Getenv("USER_SERVICE"), grpc.WithInsecure())
 	if err != nil {

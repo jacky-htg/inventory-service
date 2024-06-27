@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
 	"google.golang.org/grpc/codes"
@@ -24,7 +25,7 @@ func (u *Category) List(in *inventories.MyEmpty, stream inventories.CategoryServ
 	defer rows.Close()
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}

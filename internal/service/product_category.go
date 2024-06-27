@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"inventory-service/internal/model"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
 	"google.golang.org/grpc/codes"
@@ -44,11 +45,6 @@ func (u *ProductCategory) Create(ctx context.Context, in *inventories.ProductCat
 		}
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &productCategoryModel.Pb, err
-	}
-
 	productCategoryModel.Pb = inventories.ProductCategory{
 		Category: in.GetCategory(),
 		Name:     in.GetName(),
@@ -72,11 +68,6 @@ func (u *ProductCategory) Update(ctx context.Context, in *inventories.ProductCat
 			return &productCategoryModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid id")
 		}
 		productCategoryModel.Pb.Id = in.GetId()
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &productCategoryModel.Pb, err
 	}
 
 	err = productCategoryModel.Get(ctx, u.Db)
@@ -120,11 +111,6 @@ func (u *ProductCategory) View(ctx context.Context, in *inventories.Id) (*invent
 		productCategoryModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &productCategoryModel.Pb, err
-	}
-
 	err = productCategoryModel.Get(ctx, u.Db)
 	if err != nil {
 		return &productCategoryModel.Pb, err
@@ -149,11 +135,6 @@ func (u *ProductCategory) Delete(ctx context.Context, in *inventories.Id) (*inve
 		productCategoryModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &output, err
-	}
-
 	err = productCategoryModel.Get(ctx, u.Db)
 	if err != nil {
 		return &output, err
@@ -171,13 +152,11 @@ func (u *ProductCategory) Delete(ctx context.Context, in *inventories.Id) (*inve
 // List ProductCategory
 func (u *ProductCategory) List(in *inventories.ListProductCategoryRequest, stream inventories.ProductCategoryService_ListServer) error {
 	ctx := stream.Context()
-	ctx, err := getMetadata(ctx)
+	var productCategoryModel model.ProductCategory
+	query, paramQueries, paginationResponse, err := productCategoryModel.ListQuery(ctx, u.Db, in)
 	if err != nil {
 		return err
 	}
-
-	var productCategoryModel model.ProductCategory
-	query, paramQueries, paginationResponse, err := productCategoryModel.ListQuery(ctx, u.Db, in)
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {
@@ -187,7 +166,7 @@ func (u *ProductCategory) List(in *inventories.ListProductCategoryRequest, strea
 	paginationResponse.Pagination = in.GetPagination()
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}

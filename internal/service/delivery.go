@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"inventory-service/internal/model"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
 	"google.golang.org/grpc/codes"
@@ -42,11 +43,6 @@ func (u *Delivery) Create(ctx context.Context, in *inventories.Delivery) (*inven
 		if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetDeliveryDate()); err != nil {
 			return &deliveryModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid date")
 		}
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &deliveryModel.Pb, err
 	}
 
 	for _, detail := range in.GetDetails() {
@@ -142,11 +138,6 @@ func (u *Delivery) Update(ctx context.Context, in *inventories.Delivery) (*inven
 
 	// TODO : if any return do update will be blocked
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &deliveryModel.Pb, err
-	}
-
 	err = deliveryModel.Get(ctx, u.Db)
 	if err != nil {
 		return &deliveryModel.Pb, err
@@ -171,7 +162,7 @@ func (u *Delivery) Update(ctx context.Context, in *inventories.Delivery) (*inven
 		return &deliveryModel.Pb, err
 	}
 
-	var newDetails []*inventories.DeliveryDetail
+	// var newDetails []*inventories.DeliveryDetail
 	for _, detail := range in.GetDetails() {
 		// product validation
 		if len(detail.GetProduct().GetId()) == 0 {
@@ -249,7 +240,7 @@ func (u *Delivery) Update(ctx context.Context, in *inventories.Delivery) (*inven
 				return &deliveryModel.Pb, err
 			}
 
-			newDetails = append(newDetails, &deliveryDetailModel.Pb)
+			// newDetails = append(newDetails, &deliveryDetailModel.Pb)
 		}
 	}
 
@@ -284,11 +275,6 @@ func (u *Delivery) View(ctx context.Context, in *inventories.Id) (*inventories.D
 		deliveryModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &deliveryModel.Pb, err
-	}
-
 	err = deliveryModel.Get(ctx, u.Db)
 	if err != nil {
 		return &deliveryModel.Pb, err
@@ -300,13 +286,11 @@ func (u *Delivery) View(ctx context.Context, in *inventories.Id) (*inventories.D
 // List Delivery
 func (u *Delivery) List(in *inventories.ListDeliveryRequest, stream inventories.DeliveryService_ListServer) error {
 	ctx := stream.Context()
-	ctx, err := getMetadata(ctx)
+	var deliveryModel model.Delivery
+	query, paramQueries, paginationResponse, err := deliveryModel.ListQuery(ctx, u.Db, in)
 	if err != nil {
 		return err
 	}
-
-	var deliveryModel model.Delivery
-	query, paramQueries, paginationResponse, err := deliveryModel.ListQuery(ctx, u.Db, in)
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {
@@ -316,7 +300,7 @@ func (u *Delivery) List(in *inventories.ListDeliveryRequest, stream inventories.
 	paginationResponse.Pagination = in.GetPagination()
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}

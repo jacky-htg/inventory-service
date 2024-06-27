@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"inventory-service/internal/model"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
 	"google.golang.org/grpc/codes"
@@ -44,11 +45,6 @@ func (u *Warehouse) Create(ctx context.Context, in *inventories.Warehouse) (*inv
 		if len(in.GetPicPhone()) == 0 {
 			return &warehouseModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid PIC phone")
 		}
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &warehouseModel.Pb, err
 	}
 
 	// code validation
@@ -106,11 +102,6 @@ func (u *Warehouse) Update(ctx context.Context, in *inventories.Warehouse) (*inv
 		warehouseModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &warehouseModel.Pb, err
-	}
-
 	err = warehouseModel.Get(ctx, u.Db)
 	if err != nil {
 		return &warehouseModel.Pb, err
@@ -149,11 +140,6 @@ func (u *Warehouse) View(ctx context.Context, in *inventories.Id) (*inventories.
 		warehouseModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &warehouseModel.Pb, err
-	}
-
 	err = warehouseModel.Get(ctx, u.Db)
 	if err != nil {
 		return &warehouseModel.Pb, err
@@ -178,11 +164,6 @@ func (u *Warehouse) Delete(ctx context.Context, in *inventories.Id) (*inventorie
 		warehouseModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &output, err
-	}
-
 	err = warehouseModel.Get(ctx, u.Db)
 	if err != nil {
 		return &output, err
@@ -200,13 +181,11 @@ func (u *Warehouse) Delete(ctx context.Context, in *inventories.Id) (*inventorie
 // List Warehouse
 func (u *Warehouse) List(in *inventories.ListWarehouseRequest, stream inventories.WarehouseService_ListServer) error {
 	ctx := stream.Context()
-	ctx, err := getMetadata(ctx)
+	var warehouseModel model.Warehouse
+	query, paramQueries, paginationResponse, err := warehouseModel.ListQuery(ctx, u.Db, in)
 	if err != nil {
 		return err
 	}
-
-	var warehouseModel model.Warehouse
-	query, paramQueries, paginationResponse, err := warehouseModel.ListQuery(ctx, u.Db, in)
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {
@@ -216,7 +195,7 @@ func (u *Warehouse) List(in *inventories.ListWarehouseRequest, stream inventorie
 	paginationResponse.Pagination = in.GetPagination()
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}

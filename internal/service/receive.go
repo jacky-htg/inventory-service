@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"inventory-service/internal/model"
+	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 
 	"google.golang.org/grpc/codes"
@@ -42,11 +43,6 @@ func (u *Receive) Create(ctx context.Context, in *inventories.Receive) (*invento
 		if _, err := time.Parse("2006-01-02T15:04:05.000Z", in.GetReceiveDate()); err != nil {
 			return &receiveModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid date")
 		}
-	}
-
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &receiveModel.Pb, err
 	}
 
 	for _, detail := range in.GetDetails() {
@@ -132,11 +128,6 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 
 	// TODO : if any mutation_unit, return receive, or delivery order, update will be blocked
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &receiveModel.Pb, err
-	}
-
 	err = receiveModel.Get(ctx, u.Db)
 	if err != nil {
 		return &receiveModel.Pb, err
@@ -161,7 +152,7 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 		return &receiveModel.Pb, err
 	}
 
-	var newDetails []*inventories.ReceiveDetail
+	//var newDetails []*inventories.ReceiveDetail
 	for _, detail := range in.GetDetails() {
 		// product validation
 		if len(detail.GetProduct().GetId()) == 0 {
@@ -230,7 +221,7 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 				return &receiveModel.Pb, err
 			}
 
-			newDetails = append(newDetails, &receiveDetailModel.Pb)
+			//newDetails = append(newDetails, &receiveDetailModel.Pb)
 			for index, data := range receiveModel.Pb.GetDetails() {
 				if data.GetId() == detail.GetId() {
 					receiveModel.Pb.Details = append(receiveModel.Pb.Details[:index], receiveModel.Pb.Details[index+1:]...)
@@ -266,7 +257,7 @@ func (u *Receive) Update(ctx context.Context, in *inventories.Receive) (*invento
 				return &receiveModel.Pb, err
 			}
 
-			newDetails = append(newDetails, &receiveDetailModel.Pb)
+			//newDetails = append(newDetails, &receiveDetailModel.Pb)
 		}
 	}
 
@@ -301,11 +292,6 @@ func (u *Receive) View(ctx context.Context, in *inventories.Id) (*inventories.Re
 		receiveModel.Pb.Id = in.GetId()
 	}
 
-	ctx, err = getMetadata(ctx)
-	if err != nil {
-		return &receiveModel.Pb, err
-	}
-
 	err = receiveModel.Get(ctx, u.Db)
 	if err != nil {
 		return &receiveModel.Pb, err
@@ -317,13 +303,11 @@ func (u *Receive) View(ctx context.Context, in *inventories.Id) (*inventories.Re
 // List Receive
 func (u *Receive) List(in *inventories.ListReceiveRequest, stream inventories.ReceiveService_ListServer) error {
 	ctx := stream.Context()
-	ctx, err := getMetadata(ctx)
+	var receiveModel model.Receive
+	query, paramQueries, paginationResponse, err := receiveModel.ListQuery(ctx, u.Db, in)
 	if err != nil {
 		return err
 	}
-
-	var receiveModel model.Receive
-	query, paramQueries, paginationResponse, err := receiveModel.ListQuery(ctx, u.Db, in)
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {
@@ -333,7 +317,7 @@ func (u *Receive) List(in *inventories.ListReceiveRequest, stream inventories.Re
 	paginationResponse.Pagination = in.GetPagination()
 
 	for rows.Next() {
-		err := contextError(ctx)
+		err := app.ContextError(ctx)
 		if err != nil {
 			return err
 		}

@@ -8,52 +8,8 @@ import (
 	"inventory-service/internal/pkg/app"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
-
-func contextError(ctx context.Context) error {
-	switch ctx.Err() {
-	case context.Canceled:
-		return status.Error(codes.Canceled, "request is canceled")
-	case context.DeadlineExceeded:
-		return status.Error(codes.DeadlineExceeded, "deadline is exceeded")
-	default:
-		return nil
-	}
-}
-
-func getMetadata(ctx context.Context) (context.Context, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ctx, status.Errorf(codes.Unauthenticated, "metadata is not provided")
-	}
-
-	userID := md["user_id"]
-	if len(userID) == 0 {
-		return ctx, status.Errorf(codes.Unauthenticated, "user_id is not provided")
-	}
-
-	ctx = context.WithValue(ctx, app.Ctx("userID"), userID[0])
-
-	companyID := md["company_id"]
-	if len(companyID) == 0 {
-		return ctx, status.Errorf(codes.Unauthenticated, "company_id is not provided")
-	}
-
-	ctx = context.WithValue(ctx, app.Ctx("companyID"), companyID[0])
-
-	return ctx, nil
-}
-
-func setMetadata(ctx context.Context) context.Context {
-	md := metadata.New(map[string]string{
-		"user_id":    ctx.Value(app.Ctx("userID")).(string),
-		"company_id": ctx.Value(app.Ctx("companyID")).(string),
-	})
-
-	return metadata.NewOutgoingContext(ctx, md)
-}
 
 func isYourBranch(
 	ctx context.Context,
@@ -110,7 +66,7 @@ func checkYourBranch(branches []*users.Branch, branchID string) error {
 }
 
 func getUserLogin(ctx context.Context, userClient users.UserServiceClient) (*users.User, error) {
-	userLogin, err := userClient.View(setMetadata(ctx), &users.Id{Id: ctx.Value(app.Ctx("userID")).(string)})
+	userLogin, err := userClient.View(ctx, &users.Id{Id: ctx.Value(app.Ctx("userID")).(string)})
 
 	if err != nil {
 		return &users.User{}, status.Errorf(codes.Internal, "Error when calling user service: %v", err)
@@ -120,7 +76,7 @@ func getUserLogin(ctx context.Context, userClient users.UserServiceClient) (*use
 }
 
 func getRegion(ctx context.Context, regionClient users.RegionServiceClient, r *users.Region) (*users.Region, error) {
-	region, err := regionClient.View(setMetadata(ctx), &users.Id{Id: r.GetId()})
+	region, err := regionClient.View(ctx, &users.Id{Id: r.GetId()})
 
 	if err != nil {
 		return &users.Region{}, status.Errorf(codes.Internal, "Error when calling region service: %v", err)
@@ -132,7 +88,7 @@ func getRegion(ctx context.Context, regionClient users.RegionServiceClient, r *u
 func getBranches(ctx context.Context, branchClient users.BranchServiceClient) ([]*users.Branch, error) {
 	var list []*users.Branch
 	var err error
-	stream, err := branchClient.List(setMetadata(ctx), &users.ListBranchRequest{})
+	stream, err := branchClient.List(ctx, &users.ListBranchRequest{})
 	if err != nil {
 		return list, status.Errorf(codes.Internal, "Error when calling branches service: %s", err)
 	}
@@ -151,7 +107,7 @@ func getBranches(ctx context.Context, branchClient users.BranchServiceClient) ([
 }
 
 func getBranch(ctx context.Context, branchClient users.BranchServiceClient, id string) (*users.Branch, error) {
-	branch, err := branchClient.View(setMetadata(ctx), &users.Id{Id: id})
+	branch, err := branchClient.View(ctx, &users.Id{Id: id})
 	if err != nil {
 		return &users.Branch{}, status.Errorf(codes.Internal, "Error when calling branch service: %v", err)
 	}
