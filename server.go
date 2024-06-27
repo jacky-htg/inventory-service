@@ -66,7 +66,7 @@ func main() {
 
 	userConn, err := grpc.NewClient(os.Getenv("USER_SERVICE"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log["info"].Println("create user service connection: %v", err)
+		log["info"].Printf("create user service connection: %v", err)
 	}
 	defer userConn.Close()
 

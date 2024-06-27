@@ -98,7 +98,7 @@ func (u *Inventory) Create(ctx context.Context, tx *sql.Tx) error {
 		INSERT INTO inventories (
 			id, company_id, branch_id, product_id, barcode, 
 			transaction_id, transaction_code, transaction_date, 
-			type, in_out, shelve_id, createde_at, updated_at) 
+			type, in_out, shelve_id, created_at, updated_at) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 	`
 	stmt, err := tx.PrepareContext(ctx, query)

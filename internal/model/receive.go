@@ -41,6 +41,7 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 		JOIN products ON receive_details.product_id = products.id
 		JOIN shelves ON receive_details.shelve_id = shelves.id
 		WHERE receives.id = $1
+		GROUP BY receives.id
 	`
 
 	stmt, err := db.PrepareContext(ctx, query)
@@ -74,13 +75,13 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 
 	detailReceives := []struct {
 		ID          string
-		ReceiveID   string
-		ProductID   string
-		ProductName string
-		ProductCode string
-		ShelveID    string
-		ShelveCode  string
-		ExpiredDate time.Time
+		ReceiveID   string `json:"receive_id"`
+		ProductID   string `json:"product_id"`
+		ProductName string `json:"product_name"`
+		ProductCode string `json:"product_code"`
+		ShelveID    string `json:"shelve_id"`
+		ShelveCode  string `json:"shelve_code"`
+		ExpiredDate string `json:"expired_date"`
 	}{}
 	err = json.Unmarshal([]byte(details), &detailReceives)
 	if err != nil {
@@ -89,7 +90,7 @@ func (u *Receive) Get(ctx context.Context, db *sql.DB) error {
 
 	for _, detail := range detailReceives {
 		u.Pb.Details = append(u.Pb.Details, &inventories.ReceiveDetail{
-			ExpiredDate: detail.ExpiredDate.String(),
+			ExpiredDate: detail.ExpiredDate,
 			Id:          detail.ID,
 			Product: &inventories.Product{
 				Id:   detail.ProductID,
@@ -175,7 +176,7 @@ func (u *Receive) Create(ctx context.Context, tx *sql.Tx) error {
 
 	query := `
 		INSERT INTO receives (id, company_id, branch_id, branch_name, purchase_id, code, receive_date, remark, created_at, created_by, updated_at, updated_by) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	`
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
@@ -310,7 +311,7 @@ func (u *Receive) ListQuery(ctx context.Context, db *sql.DB, in *inventories.Lis
 	}
 
 	if len(in.GetPagination().GetSearch()) > 0 {
-		paramQueries = append(paramQueries, in.GetPagination().GetSearch())
+		paramQueries = append(paramQueries, "%"+in.GetPagination().GetSearch()+"%")
 		where = append(where, fmt.Sprintf(`(code ILIKE $%d OR remark ILIKE $%d)`, len(paramQueries), len(paramQueries)))
 	}
 
