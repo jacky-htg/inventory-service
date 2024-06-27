@@ -7,6 +7,7 @@ import (
 	"inventory-service/internal/pkg/app"
 	"inventory-service/pb/inventories"
 	"inventory-service/pb/users"
+	"log"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -16,6 +17,7 @@ import (
 // DeliveryReturn struct
 type DeliveryReturn struct {
 	Db           *sql.DB
+	Log          map[string]*log.Logger
 	UserClient   users.UserServiceClient
 	RegionClient users.RegionServiceClient
 	BranchClient users.BranchServiceClient

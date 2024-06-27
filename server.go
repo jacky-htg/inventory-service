@@ -1,17 +1,18 @@
 package main
 
 import (
+	"log"
 	"net"
 	"os"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"inventory-service/internal/config"
 	"inventory-service/internal/middleware"
 	"inventory-service/internal/pkg/db/postgres"
-	"inventory-service/internal/pkg/log/logruslog"
 	"inventory-service/internal/route"
 )
 
@@ -29,22 +30,26 @@ func main() {
 	}
 
 	// init log
-	log := logruslog.Init()
+	log := map[string]*log.Logger{
+		"error":   log.New(os.Stdout, "ERROR: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile),
+		"info":    log.New(os.Stdout, "INFO: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile),
+		"warning": log.New(os.Stdout, "WARNING: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile),
+	}
 
 	// create postgres database connection
 	db, err := postgres.Open()
 	if err != nil {
-		log.Errorf("connecting to db: %v", err)
+		log["error"].Fatalf("connecting to db: %v", err)
 		return
 	}
-	log.Info("connecting to postgresql database")
+	log["info"].Println("connecting to postgresql database")
 
 	defer db.Close()
 
 	// listen tcp port
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log["error"].Fatalf("failed to listen: %v", err)
 	}
 
 	mdInterceptor := middleware.Metadata{}
@@ -59,9 +64,9 @@ func main() {
 
 	grpcServer := grpc.NewServer(serverOptions...)
 
-	userConn, err := grpc.Dial(os.Getenv("USER_SERVICE"), grpc.WithInsecure())
+	userConn, err := grpc.NewClient(os.Getenv("USER_SERVICE"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("create user service connection: %v", err)
+		log["info"].Println("create user service connection: %v", err)
 	}
 	defer userConn.Close()
 
@@ -69,8 +74,8 @@ func main() {
 	route.GrpcRoute(grpcServer, db, log, userConn)
 
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %s", err)
+		log["error"].Fatalf("failed to serve: %s", err)
 		return
 	}
-	log.Info("serve grpc on port: " + port)
+	log["info"].Println("serve grpc on port: " + port)
 }

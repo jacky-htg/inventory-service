@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 
 	"inventory-service/internal/model"
@@ -15,7 +16,8 @@ import (
 
 // ProductCategory struct
 type ProductCategory struct {
-	Db *sql.DB
+	Db  *sql.DB
+	Log map[string]*log.Logger
 	inventories.UnimplementedProductCategoryServiceServer
 }
 

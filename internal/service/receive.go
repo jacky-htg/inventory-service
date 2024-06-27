@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"inventory-service/pb/users"
+	"log"
 	"time"
 
 	"inventory-service/internal/model"
@@ -17,6 +18,7 @@ import (
 // Receive struct
 type Receive struct {
 	Db           *sql.DB
+	Log          map[string]*log.Logger
 	UserClient   users.UserServiceClient
 	RegionClient users.RegionServiceClient
 	BranchClient users.BranchServiceClient

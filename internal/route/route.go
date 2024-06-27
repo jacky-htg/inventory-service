@@ -5,26 +5,26 @@ import (
 	"inventory-service/internal/service"
 	"inventory-service/pb/inventories"
 	"inventory-service/pb/users"
+	"log"
 
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
 // GrpcRoute func
-func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn *grpc.ClientConn) {
-	categoryServer := service.Category{Db: db}
+func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log map[string]*log.Logger, userConn *grpc.ClientConn) {
+	categoryServer := service.Category{Db: db, Log: log}
 	inventories.RegisterCategoryServiceServer(grpcServer, &categoryServer)
 
-	productCategoryServer := service.ProductCategory{Db: db}
+	productCategoryServer := service.ProductCategory{Db: db, Log: log}
 	inventories.RegisterProductCategoryServiceServer(grpcServer, &productCategoryServer)
 
-	brandServer := service.Brand{Db: db}
+	brandServer := service.Brand{Db: db, Log: log}
 	inventories.RegisterBrandServiceServer(grpcServer, &brandServer)
 
-	productServer := service.Product{Db: db}
+	productServer := service.Product{Db: db, Log: log}
 	inventories.RegisterProductServiceServer(grpcServer, &productServer)
 
-	shelveServer := service.Shelve{Db: db}
+	shelveServer := service.Shelve{Db: db, Log: log}
 	inventories.RegisterShelveServiceServer(grpcServer, &shelveServer)
 
 	warehouseServer := service.Warehouse{
@@ -32,6 +32,7 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 		UserClient:   users.NewUserServiceClient(userConn),
 		RegionClient: users.NewRegionServiceClient(userConn),
 		BranchClient: users.NewBranchServiceClient(userConn),
+		Log:          log,
 	}
 	inventories.RegisterWarehouseServiceServer(grpcServer, &warehouseServer)
 
@@ -40,6 +41,7 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 		UserClient:   users.NewUserServiceClient((userConn)),
 		RegionClient: users.NewRegionServiceClient(userConn),
 		BranchClient: users.NewBranchServiceClient(userConn),
+		Log:          log,
 	}
 	inventories.RegisterReceiveServiceServer(grpcServer, &receiveServer)
 
@@ -48,6 +50,7 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 		UserClient:   users.NewUserServiceClient((userConn)),
 		RegionClient: users.NewRegionServiceClient(userConn),
 		BranchClient: users.NewBranchServiceClient(userConn),
+		Log:          log,
 	}
 	inventories.RegisterDeliveryServiceServer(grpcServer, &deliveryServer)
 
@@ -56,6 +59,7 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 		UserClient:   users.NewUserServiceClient((userConn)),
 		RegionClient: users.NewRegionServiceClient(userConn),
 		BranchClient: users.NewBranchServiceClient(userConn),
+		Log:          log,
 	}
 	inventories.RegisterReceiveReturnServiceServer(grpcServer, &receiveReturnServer)
 
@@ -64,6 +68,7 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 		UserClient:   users.NewUserServiceClient((userConn)),
 		RegionClient: users.NewRegionServiceClient(userConn),
 		BranchClient: users.NewBranchServiceClient(userConn),
+		Log:          log,
 	}
 	inventories.RegisterDeliveryReturnServiceServer(grpcServer, &deliveryReturnServer)
 
@@ -72,6 +77,7 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *logrus.Entry, userConn 
 		UserClient:   users.NewUserServiceClient((userConn)),
 		RegionClient: users.NewRegionServiceClient(userConn),
 		BranchClient: users.NewBranchServiceClient(userConn),
+		Log:          log,
 	}
 	inventories.RegisterStockServiceServer(grpcServer, &stockServer)
 }

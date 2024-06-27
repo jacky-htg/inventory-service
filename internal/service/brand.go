@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 
 	"inventory-service/internal/model"
@@ -15,7 +16,8 @@ import (
 
 // Brand struct
 type Brand struct {
-	Db *sql.DB
+	Db  *sql.DB
+	Log map[string]*log.Logger
 	inventories.UnimplementedBrandServiceServer
 }
 
@@ -27,27 +29,33 @@ func (u *Brand) Create(ctx context.Context, in *inventories.Brand) (*inventories
 	// basic validation
 	{
 		if len(in.GetName()) == 0 {
-			return &brandModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid name")
+			err = status.Error(codes.InvalidArgument, "Please supply valid name")
+			u.Log["error"].Println(err)
+			return &brandModel.Pb, err
 		}
 	}
 
 	// code validation
 	{
 		if len(in.GetCode()) == 0 {
-			return &brandModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid code")
+			err = status.Error(codes.InvalidArgument, "Please supply valid code")
+			u.Log["error"].Println(err)
+			return &brandModel.Pb, err
 		}
 
 		brandModel = model.Brand{}
 		brandModel.Pb.Code = in.GetCode()
 		err = brandModel.GetByCode(ctx, u.Db)
 		if err != nil {
-			if st, ok := status.FromError(err); ok && st.Code() != codes.NotFound {
+			if st, ok := status.FromError(err); !ok && st.Code() != codes.NotFound {
 				return &brandModel.Pb, err
 			}
 		}
 
 		if len(brandModel.Pb.GetId()) > 0 {
-			return &brandModel.Pb, status.Error(codes.AlreadyExists, "code must be unique")
+			err = status.Error(codes.AlreadyExists, "code must be unique")
+			u.Log["error"].Println(err)
+			return &brandModel.Pb, err
 		}
 	}
 
@@ -71,7 +79,9 @@ func (u *Brand) Update(ctx context.Context, in *inventories.Brand) (*inventories
 	// basic validation
 	{
 		if len(in.GetId()) == 0 {
-			return &brandModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid id")
+			err = status.Error(codes.InvalidArgument, "Please supply valid id")
+			u.Log["error"].Println(err)
+			return &brandModel.Pb, err
 		}
 		brandModel.Pb.Id = in.GetId()
 	}
@@ -101,7 +111,9 @@ func (u *Brand) View(ctx context.Context, in *inventories.Id) (*inventories.Bran
 	// basic validation
 	{
 		if len(in.GetId()) == 0 {
-			return &brandModel.Pb, status.Error(codes.InvalidArgument, "Please supply valid id")
+			err = status.Error(codes.InvalidArgument, "Please supply valid id")
+			u.Log["error"].Println(err)
+			return &brandModel.Pb, err
 		}
 		brandModel.Pb.Id = in.GetId()
 	}
@@ -125,7 +137,9 @@ func (u *Brand) Delete(ctx context.Context, in *inventories.Id) (*inventories.My
 	// basic validation
 	{
 		if len(in.GetId()) == 0 {
-			return &output, status.Error(codes.InvalidArgument, "Please supply valid id")
+			err = status.Error(codes.InvalidArgument, "Please supply valid id")
+			u.Log["error"].Println(err)
+			return &output, err
 		}
 		brandModel.Pb.Id = in.GetId()
 	}
@@ -155,7 +169,9 @@ func (u *Brand) List(in *inventories.Pagination, stream inventories.BrandService
 
 	rows, err := u.Db.QueryContext(ctx, query, paramQueries...)
 	if err != nil {
-		return status.Error(codes.Internal, err.Error())
+		err = status.Error(codes.Internal, err.Error())
+		u.Log["error"].Println(err)
+		return err
 	}
 	defer rows.Close()
 	paginationResponse.Pagination = in
@@ -163,6 +179,7 @@ func (u *Brand) List(in *inventories.Pagination, stream inventories.BrandService
 	for rows.Next() {
 		err := app.ContextError(ctx)
 		if err != nil {
+			u.Log["error"].Println(err)
 			return err
 		}
 
@@ -171,7 +188,9 @@ func (u *Brand) List(in *inventories.Pagination, stream inventories.BrandService
 		var createdAt, updatedAt time.Time
 		err = rows.Scan(&pbBrand.Id, &companyID, &pbBrand.Code, &pbBrand.Name, &createdAt, &pbBrand.CreatedBy, &updatedAt, &pbBrand.UpdatedBy)
 		if err != nil {
-			return status.Errorf(codes.Internal, "scan data: %v", err)
+			status.Errorf(codes.Internal, "scan data: %v", err)
+			u.Log["error"].Println(err)
+			return err
 		}
 
 		pbBrand.CreatedAt = createdAt.String()
@@ -184,7 +203,9 @@ func (u *Brand) List(in *inventories.Pagination, stream inventories.BrandService
 
 		err = stream.Send(res)
 		if err != nil {
-			return status.Errorf(codes.Unknown, "cannot send stream response: %v", err)
+			err = status.Errorf(codes.Unknown, "cannot send stream response: %v", err)
+			u.Log["error"].Println(err)
+			return err
 		}
 	}
 	return nil

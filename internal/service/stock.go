@@ -6,11 +6,13 @@ import (
 	"inventory-service/internal/model"
 	"inventory-service/pb/inventories"
 	"inventory-service/pb/users"
+	"log"
 )
 
 // Stock struct
 type Stock struct {
 	Db           *sql.DB
+	Log          map[string]*log.Logger
 	UserClient   users.UserServiceClient
 	RegionClient users.RegionServiceClient
 	BranchClient users.BranchServiceClient
