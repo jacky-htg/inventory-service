@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 
 	"inventory-service/internal/config"
+	"inventory-service/internal/middleware"
 	"inventory-service/internal/pkg/db/postgres"
 	"inventory-service/internal/pkg/log/logruslog"
 	"inventory-service/internal/route"
