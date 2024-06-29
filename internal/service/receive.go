@@ -325,10 +325,10 @@ func (u *Receive) List(in *inventories.ListReceiveRequest, stream inventories.Re
 		}
 
 		var pbReceive inventories.Receive
-		var purchaseID, companyID string
+		var companyID string
 		var createdAt, updatedAt time.Time
 		err = rows.Scan(&pbReceive.Id, &companyID, &pbReceive.BranchId, &pbReceive.BranchName,
-			&purchaseID, &pbReceive.Code, &pbReceive.ReceiveDate, &pbReceive.Remark,
+			&pbReceive.PurchaseId, &pbReceive.Code, &pbReceive.ReceiveDate, &pbReceive.Remark,
 			&createdAt, &pbReceive.CreatedBy, &updatedAt, &pbReceive.UpdatedBy)
 		if err != nil {
 			return status.Errorf(codes.Internal, "scan data: %v", err)

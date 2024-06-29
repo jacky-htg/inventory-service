@@ -152,7 +152,7 @@ func (u *Receive) getCode(ctx context.Context, tx *sql.Tx) (string, error) {
 		return "", status.Error(codes.Internal, err.Error())
 	}
 
-	return fmt.Sprintf("GR%d%d%d",
+	return fmt.Sprintf("GR%d%02d%05d",
 		time.Now().UTC().Year(),
 		int(time.Now().UTC().Month()),
 		(count + 1)), nil
@@ -295,7 +295,9 @@ func (u *Receive) Delete(ctx context.Context, db *sql.DB) error {
 // ListQuery builder
 func (u *Receive) ListQuery(ctx context.Context, db *sql.DB, in *inventories.ListReceiveRequest) (string, []interface{}, *inventories.ReceivePaginationResponse, error) {
 	var paginationResponse inventories.ReceivePaginationResponse
-	query := `SELECT id, company_id, branch_id, branch_name, purchase_id, code, receive_date, remark, created_at, created_by, updated_at, updated_by FROM receives`
+	query := `
+		SELECT 
+			id, company_id, branch_id, branch_name, purchase_id, code, receive_date, remark, created_at, created_by, updated_at, updated_by FROM receives`
 
 	where := []string{"company_id = $1"}
 	paramQueries := []interface{}{ctx.Value(app.Ctx("companyID")).(string)}
