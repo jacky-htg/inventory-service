@@ -1,0 +1,30 @@
+syntax = "proto3";
+package purchases;
+
+option go_package = "pb/purchases;purchases";
+option java_package = "com.wiradata.erpapplication.purchases";
+option java_multiple_files = true;
+
+import "purchases/supplier_message.proto";
+import "purchases/generic_message.proto";
+
+message ListSupplierRequest {
+  Pagination pagination = 1;
+}
+
+message SupplierPaginationResponse {
+  Pagination pagination = 1;
+  uint32 count = 2;
+}
+
+message ListSupplierResponse {
+  SupplierPaginationResponse pagination = 1;
+  Supplier supplier = 2; 
+}
+
+service SupplierService {
+  rpc SupplierCreate(Supplier) returns (Supplier) {}
+  rpc SupplierUpdate(Supplier) returns (Supplier) {}
+  rpc SupplierView(Id) returns (Supplier) {}
+  rpc SupplierList(ListSupplierRequest) returns (stream ListSupplierResponse) {}
+}

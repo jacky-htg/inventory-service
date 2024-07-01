@@ -70,8 +70,14 @@ func main() {
 	}
 	defer userConn.Close()
 
+	purchaseConn, err := grpc.NewClient(os.Getenv("PURCHASE_SERVICE"), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log["info"].Printf("create purchase service connection: %v", err)
+	}
+	defer purchaseConn.Close()
+
 	// routing grpc services
-	route.GrpcRoute(grpcServer, db, log, userConn)
+	route.GrpcRoute(grpcServer, db, log, userConn, purchaseConn)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log["error"].Fatalf("failed to serve: %s", err)

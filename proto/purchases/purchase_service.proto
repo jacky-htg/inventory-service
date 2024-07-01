@@ -1,0 +1,35 @@
+syntax = "proto3";
+package purchases;
+
+option go_package = "pb/purchases;purchases";
+option java_package = "com.wiradata.erpapplication.purchases";
+option java_multiple_files = true;
+
+import "purchases/purchase_message.proto";
+import "purchases/generic_message.proto";
+
+message ListPurchaseRequest {
+  Pagination pagination = 1;
+  string branch_id = 2;
+  string supplier_id = 3;
+}
+
+message PurchasePaginationResponse {
+  Pagination pagination = 1;
+  string branch_id = 2;
+  string supplier_id = 3;
+  uint32 count = 4;
+}
+
+message ListPurchaseResponse {
+  PurchasePaginationResponse pagination = 1;
+  Purchase purchase = 2; 
+}
+
+service PurchaseService {
+  rpc PurchaseCreate(Purchase) returns (Purchase) {}
+  rpc PurchaseUpdate(Purchase) returns (Purchase) {}
+  rpc PurchaseView(Id) returns (Purchase) {}
+  rpc PurchaseList(ListPurchaseRequest) returns (stream ListPurchaseResponse) {}
+  rpc GetOutstandingPurchaseDetails(OutstandingPurchaseRequest) returns (OutstandingPurchaseDetails) {}
+}

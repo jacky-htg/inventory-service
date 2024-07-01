@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"inventory-service/pb/purchases"
 	"inventory-service/pb/users"
 	"log"
 	"time"
@@ -17,11 +18,12 @@ import (
 
 // Receive struct
 type Receive struct {
-	Db           *sql.DB
-	Log          map[string]*log.Logger
-	UserClient   users.UserServiceClient
-	RegionClient users.RegionServiceClient
-	BranchClient users.BranchServiceClient
+	Db             *sql.DB
+	Log            map[string]*log.Logger
+	UserClient     users.UserServiceClient
+	RegionClient   users.RegionServiceClient
+	BranchClient   users.BranchServiceClient
+	PurchaseClient purchases.PurchaseServiceClient
 	inventories.UnimplementedReceiveServiceServer
 }
 
@@ -300,6 +302,46 @@ func (u *Receive) View(ctx context.Context, in *inventories.Id) (*inventories.Re
 	}
 
 	return &receiveModel.Pb, nil
+}
+
+func (u *Receive) OutstandingByPurchase(ctx context.Context, in *inventories.Id) (*inventories.OutstandingResponse, error) {
+	var mPurchase model.Purchase = model.Purchase{Id: in.Id, PurchaseClient: u.PurchaseClient}
+	output, err := mPurchase.Outstanding(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []string
+	for _, v := range output.Detail {
+		ids = append(ids, v.ProductId)
+	}
+
+	tx, err := u.Db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "begin transaction: %v", err)
+	}
+
+	var mReceiveDetail model.ReceiveDetail
+	out, err := mReceiveDetail.ListByPurchaseId(ctx, tx, in.Id, ids)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	tx.Commit()
+
+	for i, v := range output.Detail {
+		for _, val := range out {
+			if val.ProductId == v.ProductId {
+				output.Detail[i].Quantity -= val.Quantity
+				output.Detail[i].ProductName = val.ProductName
+				output.Detail[i].ProductCode = val.ProductCode
+				break
+			}
+		}
+	}
+
+	return output, nil
 }
 
 // List Receive

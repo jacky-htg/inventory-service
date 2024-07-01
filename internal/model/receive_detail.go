@@ -3,9 +3,11 @@ package model
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"inventory-service/internal/pkg/app"
+	"inventory-service/internal/pkg/util"
 	"inventory-service/pb/inventories"
 
 	"github.com/google/uuid"
@@ -58,6 +60,70 @@ func (u *ReceiveDetail) Get(ctx context.Context, tx *sql.Tx) error {
 	u.Pb.Shelve = &pbShelve
 
 	return nil
+}
+
+// Get func
+func (u *ReceiveDetail) ListByPurchaseId(ctx context.Context, tx *sql.Tx, purchaseId string, ids []string) ([]*inventories.OutstandingDetail, error) {
+	var output []*inventories.OutstandingDetail
+	query := `
+	with receive_details as (
+		select receive_details.product_id, COUNT(receive_details.product_id) quantity
+		from receive_details 
+		join receives ON receive_details.receive_id = receives.id
+		where receives.purchase_id = $1
+		group by receive_details.product_id
+	)
+	select products.id, products.code, products.name, coalesce(receive_details.quantity, 0)
+	from products
+	left join receive_details on products.id = receive_details.product_id
+	`
+	where := []string{}
+	paramQueries := []interface{}{purchaseId}
+
+	if len(ids) > 0 {
+		productIds := make([]interface{}, len(ids))
+		for i, productId := range ids {
+			productIds[i] = productId
+		}
+		var iCond string
+		paramQueries, iCond = util.ConvertWhereIn("products.id", paramQueries, productIds)
+		where = append(where, iCond)
+	}
+
+	if len(where) > 0 {
+		query += ` WHERE ` + strings.Join(where, " AND ")
+	}
+
+	stmt, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Prepare statement ListByPurchaseId: %v", err)
+	}
+	defer stmt.Close()
+
+	row, err := stmt.QueryContext(ctx, paramQueries...)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "QueryContext ListByPurchaseId: %v", err)
+	}
+
+	for row.Next() {
+		var detail inventories.OutstandingDetail
+		err = row.Scan(&detail.ProductId, &detail.ProductCode, &detail.ProductName, &detail.Quantity)
+		if err == sql.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, "Query Raw ListByPurchaseId: %v", err)
+		}
+
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Query Raw ListByPurchaseId: %v", err)
+		}
+
+		output = append(output, &detail)
+	}
+
+	if row.Err() != nil {
+		return nil, status.Error(codes.Internal, row.Err().Error())
+	}
+
+	return output, nil
 }
 
 // Create ReceiveDetail

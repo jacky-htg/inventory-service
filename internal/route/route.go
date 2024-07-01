@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"inventory-service/internal/service"
 	"inventory-service/pb/inventories"
+	"inventory-service/pb/purchases"
 	"inventory-service/pb/users"
 	"log"
 
@@ -11,7 +12,8 @@ import (
 )
 
 // GrpcRoute func
-func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log map[string]*log.Logger, userConn *grpc.ClientConn) {
+func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log map[string]*log.Logger,
+	userConn, purchaseConn *grpc.ClientConn) {
 	categoryServer := service.Category{Db: db, Log: log}
 	inventories.RegisterCategoryServiceServer(grpcServer, &categoryServer)
 
@@ -37,11 +39,12 @@ func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log map[string]*log.Logger, 
 	inventories.RegisterWarehouseServiceServer(grpcServer, &warehouseServer)
 
 	receiveServer := service.Receive{
-		Db:           db,
-		UserClient:   users.NewUserServiceClient((userConn)),
-		RegionClient: users.NewRegionServiceClient(userConn),
-		BranchClient: users.NewBranchServiceClient(userConn),
-		Log:          log,
+		Db:             db,
+		UserClient:     users.NewUserServiceClient((userConn)),
+		RegionClient:   users.NewRegionServiceClient(userConn),
+		BranchClient:   users.NewBranchServiceClient(userConn),
+		PurchaseClient: purchases.NewPurchaseServiceClient(purchaseConn),
+		Log:            log,
 	}
 	inventories.RegisterReceiveServiceServer(grpcServer, &receiveServer)
 

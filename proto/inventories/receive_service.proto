@@ -31,4 +31,5 @@ service ReceiveService {
   rpc Update(Receive) returns (Receive) {}
   rpc View(Id) returns (Receive) {}
   rpc List(ListReceiveRequest) returns (stream ListReceiveResponse) {}
+  rpc OutstandingByPurchase(Id) returns (OutstandingResponse) {}
 }

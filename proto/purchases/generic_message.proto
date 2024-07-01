@@ -1,8 +1,8 @@
 syntax = "proto3";
-package wiradata.inventories;
+package purchases;
 
-option go_package = "pb/inventories;inventories";
-option java_package = "com.wiradata.erpapplication.inventories";
+option go_package = "pb/purchases;purchases";
+option java_package = "com.wiradata.erpapplication.purchases";
 option java_multiple_files = true;
 
 message MyEmpty {}
@@ -27,15 +27,4 @@ message Pagination {
 message PaginationResponse {
   Pagination pagination = 1;
   uint32 count = 2;
-}
-
-message OutstandingDetail {
-  string product_id = 1;
-  string product_name = 2;
-  string product_code = 3;
-  uint32 quantity = 4;
-}
-
-message OutstandingResponse {
-  repeated OutstandingDetail detail = 1;
 }
