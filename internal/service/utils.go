@@ -2,11 +2,10 @@ package service
 
 import (
 	"context"
-	"inventory-service/pb/users"
 	"io"
 
-	"inventory-service/internal/pkg/app"
-
+	"github.com/jacky-htg/erp-pkg/app"
+	"github.com/jacky-htg/erp-proto/go/pb/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

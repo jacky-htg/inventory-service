@@ -3,10 +3,11 @@ package service
 import (
 	"context"
 	"database/sql"
-	"inventory-service/internal/model"
-	"inventory-service/pb/inventories"
-	"inventory-service/pb/users"
 	"log"
+
+	"github.com/jacky-htg/erp-proto/go/pb/inventories"
+	"github.com/jacky-htg/erp-proto/go/pb/users"
+	"github.com/jacky-htg/inventory-service/internal/model"
 )
 
 // Stock struct

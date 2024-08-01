@@ -4,8 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"inventory-service/pb/inventories"
-
+	"github.com/jacky-htg/erp-proto/go/pb/inventories"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

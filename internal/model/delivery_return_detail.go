@@ -3,11 +3,11 @@ package model
 import (
 	"context"
 	"database/sql"
-	"inventory-service/internal/pkg/app"
-	"inventory-service/pb/inventories"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jacky-htg/erp-pkg/app"
+	"github.com/jacky-htg/erp-proto/go/pb/inventories"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

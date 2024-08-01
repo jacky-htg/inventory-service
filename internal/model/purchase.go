@@ -2,9 +2,9 @@ package model
 
 import (
 	"context"
-	"inventory-service/pb/inventories"
-	"inventory-service/pb/purchases"
 
+	"github.com/jacky-htg/erp-proto/go/pb/inventories"
+	"github.com/jacky-htg/erp-proto/go/pb/purchases"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

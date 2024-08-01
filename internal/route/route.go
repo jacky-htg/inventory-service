@@ -2,12 +2,12 @@ package route
 
 import (
 	"database/sql"
-	"inventory-service/internal/service"
-	"inventory-service/pb/inventories"
-	"inventory-service/pb/purchases"
-	"inventory-service/pb/users"
 	"log"
 
+	"github.com/jacky-htg/erp-proto/go/pb/inventories"
+	"github.com/jacky-htg/erp-proto/go/pb/purchases"
+	"github.com/jacky-htg/erp-proto/go/pb/users"
+	"github.com/jacky-htg/inventory-service/internal/service"
 	"google.golang.org/grpc"
 )
 

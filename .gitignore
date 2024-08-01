@@ -21,4 +21,6 @@ go.mod
 go.sum
 log/*
 pb/*
+inventory-service
+cmd-inventory-service
 # client

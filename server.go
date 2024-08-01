@@ -6,14 +6,13 @@ import (
 	"os"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/jacky-htg/erp-pkg/db/postgres"
+	"github.com/jacky-htg/inventory-service/internal/config"
+	"github.com/jacky-htg/inventory-service/internal/middleware"
+	"github.com/jacky-htg/inventory-service/internal/route"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"inventory-service/internal/config"
-	"inventory-service/internal/middleware"
-	"inventory-service/internal/pkg/db/postgres"
-	"inventory-service/internal/route"
 )
 
 const defaultPort = "8001"

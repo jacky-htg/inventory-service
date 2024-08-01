@@ -3,15 +3,14 @@ package service
 import (
 	"context"
 	"database/sql"
-	"inventory-service/pb/purchases"
-	"inventory-service/pb/users"
 	"log"
 	"time"
 
-	"inventory-service/internal/model"
-	"inventory-service/internal/pkg/app"
-	"inventory-service/pb/inventories"
-
+	"github.com/jacky-htg/erp-pkg/app"
+	"github.com/jacky-htg/erp-proto/go/pb/inventories"
+	"github.com/jacky-htg/erp-proto/go/pb/purchases"
+	"github.com/jacky-htg/erp-proto/go/pb/users"
+	"github.com/jacky-htg/inventory-service/internal/model"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

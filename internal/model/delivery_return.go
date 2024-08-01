@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"inventory-service/internal/pkg/app"
-	"inventory-service/internal/pkg/util"
-	"inventory-service/pb/inventories"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jacky-htg/erp-pkg/app"
+	"github.com/jacky-htg/erp-pkg/util"
+	"github.com/jacky-htg/erp-proto/go/pb/inventories"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

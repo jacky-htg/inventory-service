@@ -2,10 +2,10 @@ package service
 
 import (
 	"database/sql"
-	"inventory-service/internal/pkg/app"
-	"inventory-service/pb/inventories"
 	"log"
 
+	"github.com/jacky-htg/erp-pkg/app"
+	"github.com/jacky-htg/erp-proto/go/pb/inventories"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
